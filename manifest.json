@@ -1,7 +1,7 @@
 {
   "short_name": "vredsun",
   "name": "vredsun PWA",
-  "start_url": "/nusderv/",
+  "start_url": "/canvas-music/",
   "background_color": "#dd3344",
   "theme_color": "#dd3344",
   "display": "fullscreen",
@@ -49,18 +49,18 @@
     }
   ],
   "chunks": {
-    "main.js": "/nusderv/app.main.1bf123404d60f0ecef44.js",
-    "vendors.js": "/nusderv/app.vendors.981e80e2ef5ff792ee7f.js",
-    "favicon.png": "/nusderv/favicon.png",
-    "images/favicon.png": "/nusderv/images/favicon.png",
-    "images/icons/icon-128x128.png": "/nusderv/images/icons/icon-128x128.png",
-    "images/icons/icon-144x144.png": "/nusderv/images/icons/icon-144x144.png",
-    "images/icons/icon-152x152.png": "/nusderv/images/icons/icon-152x152.png",
-    "images/icons/icon-192x192.png": "/nusderv/images/icons/icon-192x192.png",
-    "images/icons/icon-384x384.png": "/nusderv/images/icons/icon-384x384.png",
-    "images/icons/icon-512x512.png": "/nusderv/images/icons/icon-512x512.png",
-    "images/icons/icon-72x72.png": "/nusderv/images/icons/icon-72x72.png",
-    "images/icons/icon-96x96.png": "/nusderv/images/icons/icon-96x96.png",
-    "index.html": "/nusderv/index.html"
+    "main.js": "/canvas-music/app.main.2bf8aaf1ce03c197ad84.js",
+    "vendors.js": "/canvas-music/app.vendors.48904f9e123f72a39476.js",
+    "favicon.png": "/canvas-music/favicon.png",
+    "images/favicon.png": "/canvas-music/images/favicon.png",
+    "images/icons/icon-128x128.png": "/canvas-music/images/icons/icon-128x128.png",
+    "images/icons/icon-144x144.png": "/canvas-music/images/icons/icon-144x144.png",
+    "images/icons/icon-152x152.png": "/canvas-music/images/icons/icon-152x152.png",
+    "images/icons/icon-192x192.png": "/canvas-music/images/icons/icon-192x192.png",
+    "images/icons/icon-384x384.png": "/canvas-music/images/icons/icon-384x384.png",
+    "images/icons/icon-512x512.png": "/canvas-music/images/icons/icon-512x512.png",
+    "images/icons/icon-72x72.png": "/canvas-music/images/icons/icon-72x72.png",
+    "images/icons/icon-96x96.png": "/canvas-music/images/icons/icon-96x96.png",
+    "index.html": "/canvas-music/index.html"
   }
 }
