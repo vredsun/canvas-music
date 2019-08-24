@@ -9,6 +9,7 @@
     "isolatedModules": false,
     "moduleResolution": "node",
     "noUnusedLocals": true,
+    "allowSyntheticDefaultImports": false,
     "noLib": false,
     "noEmit": false,
     "jsx": "react",

@@ -1,8 +1,12 @@
 import * as React from 'react';
 import { hot } from 'react-hot-loader/root';
-import UI from 'components/ui/ui';
-// import TestGetLink from 'components/pages/get_link/TestGetLink';
 import { BrowserRouter } from 'react-router-dom';
+
+import UI from 'components/ui/ui';
+import NF_Change from 'music/NF_Change.mp3';
+
+// tslint:disable-next-line: no-console
+console.log(NF_Change);
 
 const AppContainer: React.FC<{}> = hot(() => {
   return (
