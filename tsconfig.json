@@ -1,0 +1,54 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "es6",
+    "module": "commonjs",
+    "declaration": false,
+    "noImplicitAny": true,
+    "removeComments": false,
+    "isolatedModules": false,
+    "moduleResolution": "node",
+    "noUnusedLocals": true,
+    "noLib": false,
+    "noEmit": false,
+    "jsx": "react",
+    "outDir": "dist",
+    "strictFunctionTypes": false,
+    "lib": [
+      "dom",
+      "esnext"
+    ],
+    "types": [
+      "jest",
+      "node",
+      "query-string",
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "styled-components",
+      "webpack-env",
+    ],
+    "baseUrl": "./src",
+    "typeRoots": [
+      "node_modules/@types",
+      "src/@types"
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+  ],
+  "exclude": [
+    "node_modules",
+    "static"
+  ],
+  "plugins": [
+    {
+      "name": "typescript-styled-plugin",
+      "tags": [
+        "styled",
+        "css"
+      ]
+    }
+  ]
+}
