@@ -83,7 +83,7 @@
   },
   "scripts": {
     "dev": "PUBLIC_PATH='/' webpack-dev-server --config webpack/webpack.dev.js",
-    "build": "PUBLIC_PATH='/nusderv/' webpack --config webpack/webpack.prod.js",
+    "build": "PUBLIC_PATH='/canvas-music/' webpack --config webpack/webpack.prod.js",
     "deploy": "gh-pages -d dist",
     "lint": "eslint -c .eslintrc.js --fix --ext .js --ext .jsx src",
     "lint-staged": "lint-staged",
