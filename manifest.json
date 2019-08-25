@@ -49,8 +49,8 @@
     }
   ],
   "chunks": {
-    "main.js": "/canvas-music/app.main.cb063b7e10d0660db300.js",
-    "vendors.js": "/canvas-music/app.vendors.a1523f81b95706cf90ad.js",
+    "main.js": "/canvas-music/app.main.a8f363218f60eebf22d9.js",
+    "vendors.js": "/canvas-music/app.vendors.e8aedc38820ac71a5b8f.js",
     "NF_Change.mp3": "/canvas-music/1c0452063a63e205081c4fda979744fb.mp3",
     "favicon.png": "/canvas-music/favicon.png",
     "images/favicon.png": "/canvas-music/images/favicon.png",
