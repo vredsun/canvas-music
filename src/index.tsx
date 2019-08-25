@@ -1,6 +1,8 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 import AppContainer from './AppContainer';
 import GlobalStyle from 'components/ui/GlobalStyle';
 
