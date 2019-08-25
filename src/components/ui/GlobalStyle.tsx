@@ -14,6 +14,7 @@ const GlobalStyle = createGlobalStyle`
   }
   #container, #modal_container, #image_container, #notification_container {
     width: 100%;
+    height: 100%;
     position: absolute;
     top: 0;
     pointer-events: none;

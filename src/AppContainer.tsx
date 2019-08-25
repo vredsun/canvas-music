@@ -15,7 +15,9 @@ const AppContainer: React.FC<{}> = () => {
     <BrowserRouter basename={process.env.PUBLIC_PATH}>
       <PlayerContextProvider>
         <UI.AppContainer>
-          <UI.PlayerContorl />
+          <UI.CenterBox>
+            <UI.PlayerContorl />
+          </UI.CenterBox>
         </UI.AppContainer>
       </PlayerContextProvider>
     </BrowserRouter>
