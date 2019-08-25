@@ -126,7 +126,9 @@ export const UiPlayerContorl: React.FC<{}> = () => {
           }
         </div>
         <div>
-          <input type="range" min="0" max="1" step="0.01" onChange={handleChangeVolume} value={volume} />
+          <label>
+            <input type="range" min="0" max="1" step="0.01" onChange={handleChangeVolume} value={volume} />
+          </label>
         </div>
         <div>
           {secondsInMMSS(state.timeOffset || 0)}
