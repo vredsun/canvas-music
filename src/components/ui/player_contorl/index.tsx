@@ -11,7 +11,13 @@ import { NEED_UPDATE } from 'constants/need_update';
 const cache: Record<string, AudioBuffer> = {};
 
 // tslint:disable-next-line: no-console
-const audioCtx = new window.AudioContext();
+
+let audioCtxTemp: AudioContext;
+const getAudioCtx = () => {
+  audioCtxTemp = audioCtxTemp || new window.AudioContext();
+
+  return audioCtxTemp;
+};
 
 export const UiPlayerContorl: React.FC<{}> = () => {
   const [monoData, setMonoData] = React.useState((new Array(2048)).fill(0));
@@ -66,6 +72,7 @@ export const UiPlayerContorl: React.FC<{}> = () => {
   const callBackPlay = React.useCallback(
     async () => {
       handlePlayMusic();
+      const audioCtx = getAudioCtx();
 
       // load
       let audioBuffer = cache[NF_Change];
@@ -134,6 +141,8 @@ export const UiPlayerContorl: React.FC<{}> = () => {
       handlePauseMusic();
       setState(
         (oldState) => {
+          const audioCtx = getAudioCtx();
+
           oldState.source.stop();
           clearInterval(oldState.intervalId);
           oldState.sp.removeEventListener('audioprocess', oldState.audioprocessCallback);

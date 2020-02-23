@@ -19,7 +19,7 @@ const PATH_TO_INDEX_FILE = path.join(DIR_APP_SRC, 'index.tsx');
 let BUILD = {
   output: {
     path: DIR_APP_DIST,
-    publicPath: '/'
+    publicPath: process.env.PUBLIC_PATH,
   },
   htmlTemplateName: path.join(DIR_APP_SRC, 'html', 'index.hbs'),
 };
