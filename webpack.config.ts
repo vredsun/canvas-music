@@ -31,7 +31,7 @@ const getPlugins = () => {
     new webpack.NoEmitOnErrorsPlugin(),
     new HtmlWebpackPlugin({
       template: BUILD.htmlTemplateName,
-      publicPath: '/',
+      publicPath: process.env.PUBLIC_PATH,
       hash: true,
       title: 'Мониторинг чистоты города',
       meta: {
@@ -41,6 +41,7 @@ const getPlugins = () => {
     }),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+      'process.env.PUBLIC_PATH': JSON.stringify(process.env.PUBLIC_PATH),
       '__DEV__': isDevelopment,
       '_VERSION_': JSON.stringify(pkg.version),
       '_RELEASE_DATE_': JSON.stringify(pkg.releaseDate),
