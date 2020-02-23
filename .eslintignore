@@ -2,3 +2,10 @@ src/vendor
 src/assets
 webpack
 server.js
+
+index.template.html
+vendor.d.ts
+webpack.config.ts
+tsconfig.json
+node_modules
+jest.config.js

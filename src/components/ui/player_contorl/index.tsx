@@ -15,7 +15,18 @@ const audioCtx = new window.AudioContext();
 
 export const UiPlayerContorl: React.FC<{}> = () => {
   const [monoData, setMonoData] = React.useState((new Array(2048)).fill(0));
-  const [state, setState] = React.useState({ audioprocessCallback: null, sp: null, gainNode: null, source: null, audioBuffer: null, timeOffset: null, startTime: null, intervalId: null, lastTimeUpdate: null });
+  const [state, setState] = React.useState({
+    audioprocessCallback: null,
+    sp: null,
+    gainNode: null,
+    source: null,
+    audioBuffer: null,
+    timeOffset: null,
+    startTime: null,
+    intervalId: null,
+    lastTimeUpdate: null,
+  });
+
   const current_player_state = usePlayerStateOfPlay();
   const volume = usePlayerVolume();
 
@@ -98,7 +109,7 @@ export const UiPlayerContorl: React.FC<{}> = () => {
                 },
               );
             },
-            1000,
+            4000,
           );
 
           return {

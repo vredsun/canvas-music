@@ -1,8 +1,11 @@
 module.exports = {
-  preset: 'ts-jest',
+  "transform": {
+    "^.+\\.[t|j]sx?$": "babel-jest"
+  },
   moduleDirectories: ['node_modules', 'src'],
   collectCoverage: true,
-  // collectCoverageFrom: ['src/components/**/*.{ts,js}'],
+  collectCoverageFrom: ['src/@next/utils/**/*.{ts,js}'],
+  reporters: [ 'default', 'jest-junit' ],
   globals: {
     window: true,
   },
