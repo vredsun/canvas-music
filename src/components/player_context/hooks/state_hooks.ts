@@ -7,3 +7,12 @@ export const usePlayerStateOfPlay = () => {
 export const usePlayerVolume = () => {
   return usePlayerState().volume;
 };
+
+export const usePlayerMultiply = () => {
+  return usePlayerState().multiply;
+};
+
+export const usePlayerUnionBlocks = () => {
+  return usePlayerState().unionBlocks;
+};
+

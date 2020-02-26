@@ -1,8 +1,6 @@
 import { createGlobalStyle } from 'styled-components';
-import color_by_type from 'theme/colors';
 
 const GlobalStyle = createGlobalStyle`
-  @import url(https://fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300ita‌​lic,400italic,500,500italic,700,700italic,900italic,900);
   html {
     font-family: 'Roboto', sans-serif;
   }
@@ -21,11 +19,9 @@ const GlobalStyle = createGlobalStyle`
   }
 
   ::selection {
-    background: ${color_by_type.main.primaryColorRed}; /* WebKit/Blink Browsers */
     color: white;
   }
   ::-moz-selection {
-    background: ${color_by_type.main.primaryColorRed}; /* Gecko Browsers */
     color: white;
   }
 `;

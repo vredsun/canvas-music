@@ -1,6 +1,6 @@
 import { usePlayerDispatch } from 'components/player_context/hooks/_hooks';
 import { PLAYER_STATE__STOP, PLAYER_STATE__PAUSE, PLAYER_STATE__PLAY } from 'constants/play_state';
-import { changeStateOfPlay, changeVolume } from 'components/player_context/actions';
+import { changeStateOfPlay, changeVolume, changeMultiply, changeUnionBlocks } from 'components/player_context/actions';
 
 export const useStopMusic = () => {
   const dispatch = usePlayerDispatch();
@@ -29,12 +29,29 @@ export const useChangeVolume = () => {
   const dispatch = usePlayerDispatch();
 
   return (event: any) => {
-    let value = 1;
-    try {
-      value = Number(event.target.value);
-    } catch (e) {
-      value = Number(event);
-    }
+    const value = Number(event.target.value ?? event);
+
     dispatch(changeVolume(value));
   };
 };
+
+export const useChangeMultiply = () => {
+  const dispatch = usePlayerDispatch();
+
+  return (event: any) => {
+    const value = Number(event.target.value ?? event);
+
+    dispatch(changeMultiply(value));
+  };
+};
+
+export const useChangeUnionBlocks = () => {
+  const dispatch = usePlayerDispatch();
+
+  return (event: any) => {
+    const value = Number(event.target.value ?? event);
+
+    dispatch(changeUnionBlocks(value));
+  };
+};
+

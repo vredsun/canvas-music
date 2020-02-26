@@ -7,7 +7,7 @@ import UI from 'components/ui/ui';
 
 import { PlayerContextProvider } from 'components/player_context/PlayerContext';
 
-const AppContainer: React.FC<{}> = React.memo(
+const App: React.FC<{}> = React.memo(
   () => {
     return (
       <BrowserRouter basename={process.env.PUBLIC_PATH}>
@@ -23,4 +23,4 @@ const AppContainer: React.FC<{}> = React.memo(
   },
 );
 
-export default hot(AppContainer);
+export default hot(App);

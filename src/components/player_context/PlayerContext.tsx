@@ -6,6 +6,8 @@ import { reducer } from 'components/player_context/reducer';
 export type PlayerContextValueState = {
   state_of_play: typeof PLAYER_STATE__PLAY | typeof PLAYER_STATE__PAUSE | typeof PLAYER_STATE__STOP;
   volume: number;
+  multiply: number;
+  unionBlocks: number;
 };
 
 export type PlayerContextValue = [
@@ -16,6 +18,8 @@ export type PlayerContextValue = [
 const default_value: PlayerContextValueState = {
   state_of_play: PLAYER_STATE__STOP,
   volume: 0.5,
+  multiply: 2,
+  unionBlocks: 1,
 };
 
 export const PlayerContext = React.createContext<PlayerContextValue>(
@@ -25,12 +29,15 @@ export const PlayerContext = React.createContext<PlayerContextValue>(
   ],
 );
 
-const initStore = () => {
-  const userData = JSON.parse(localStorage.getItem('userData')) || {};
+const initStore = (): PlayerContextValueState => {
+  const userData: Partial<PlayerContextValueState> = JSON.parse(localStorage.getItem('userData')) || {};
 
   return {
-    ...default_value,
-    volume: userData.volume || default_value.volume,
+    state_of_play: default_value.state_of_play,
+
+    volume: userData.volume ?? default_value.volume,
+    multiply: userData.multiply ?? default_value.multiply,
+    unionBlocks: userData.unionBlocks ?? default_value.unionBlocks,
   };
 };
 

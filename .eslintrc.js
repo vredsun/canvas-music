@@ -67,7 +67,7 @@ module.exports = {
 
     '@typescript-eslint/require-array-sort-compare': ['error'],
 
-		'@typescript-eslint/array-type': ['error', { default: 'array' }],	  	// Использовать obj[] вместо Array<obj>
+		'@typescript-eslint/array-type': ['error', { default: 'generic' }],	  // Использовать Array<obj> вместо obj[]
 		'@typescript-eslint/camelcase': [																			// camelCase warn
 			'off',
 		],

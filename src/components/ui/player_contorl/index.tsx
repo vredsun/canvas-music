@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { usePlayerStateOfPlay, usePlayerVolume } from 'components/player_context/hooks/state_hooks';
+import { usePlayerStateOfPlay, usePlayerVolume, usePlayerMultiply, usePlayerUnionBlocks } from 'components/player_context/hooks/state_hooks';
 import { PLAYER_STATE__STOP, PLAYER_STATE__PAUSE, PLAYER_STATE__PLAY } from 'constants/play_state';
-import { usePlayMusic, usePauseMusic, useChangeVolume } from 'components/player_context/hooks/actions_hook';
+import { usePlayMusic, usePauseMusic, useChangeVolume, useChangeMultiply, useChangeUnionBlocks } from 'components/player_context/hooks/actions_hook';
 
 import NF_Change from 'music/NF_Change.mp3';
 import { secondsInMMSS } from 'utils/time';
@@ -9,8 +9,6 @@ import UI from 'components/ui/ui';
 import { NEED_UPDATE } from 'constants/need_update';
 
 const cache: Record<string, AudioBuffer> = {};
-
-// tslint:disable-next-line: no-console
 
 let audioCtxTemp: AudioContext;
 const getAudioCtx = () => {
@@ -20,9 +18,17 @@ const getAudioCtx = () => {
 };
 
 export const UiPlayerContorl: React.FC<{}> = () => {
-  const [monoData, setMonoData] = React.useState((new Array(2048)).fill(0));
-  const [state, setState] = React.useState({
-    audioprocessCallback: null,
+  const [monoDataLength] = React.useState(256);
+  const [state, setState] = React.useState<{
+    sp: ScriptProcessorNode;
+    gainNode: GainNode;
+    source: AudioBufferSourceNode;
+    audioBuffer: AudioBuffer;
+    timeOffset: number;
+    startTime: number;
+    intervalId: NodeJS.Timeout;
+    lastTimeUpdate: number;
+  }>({
     sp: null,
     gainNode: null,
     source: null,
@@ -33,41 +39,20 @@ export const UiPlayerContorl: React.FC<{}> = () => {
     lastTimeUpdate: null,
   });
 
+  const [someTakeToShow, setSomeTakeToShow] = React.useState({
+    takeVolume: false,
+  });
+
   const current_player_state = usePlayerStateOfPlay();
   const volume = usePlayerVolume();
+  const multiply = usePlayerMultiply();
+  const unionBlocks = usePlayerUnionBlocks();
 
   const handlePlayMusic = usePlayMusic();
   const handlePauseMusic = usePauseMusic();
   const handleChangeVolume = useChangeVolume();
-
-  const audioprocessCallback = React.useCallback(
-    (ape: AudioProcessingEvent) => {
-      const inputBuffer = ape.inputBuffer;
-      const outputBuffer = ape.outputBuffer;
-
-      const channelsLen = outputBuffer.numberOfChannels;
-      const sampleLen = inputBuffer.length;
-
-      // для визулизации создаем монобуфер
-      const mono = (new Array(sampleLen)).fill(0);
-
-      for (let channel = 0; channel < channelsLen; channel++ ) {
-        const inputData = inputBuffer.getChannelData(channel);
-        const outputData = outputBuffer.getChannelData(channel);
-        // устанавливаем выходные данные = входным
-        // здесь можно изменить в них что-то или наложить эффект
-        outputData.set(inputData);
-
-        // микшируем в монобуфер все каналы
-        for (let sample = 0; sample < sampleLen; sample++ ) {
-          mono[sample] = (mono[sample] + inputData[sample]) / 2;
-        }
-      }
-
-      setMonoData(mono);
-    },
-    [],
-  );
+  const handleChangeMultiply = useChangeMultiply();
+  const handleChangeUnionBlocks = useChangeUnionBlocks();
 
   const callBackPlay = React.useCallback(
     async () => {
@@ -84,9 +69,7 @@ export const UiPlayerContorl: React.FC<{}> = () => {
 
       const source = audioCtx.createBufferSource();
       source.buffer = audioBuffer;
-      const sp = audioCtx.createScriptProcessor(monoData.length, 2, 2);
-
-      sp.addEventListener('audioprocess', audioprocessCallback);
+      const sp = audioCtx.createScriptProcessor(monoDataLength, 2, 2);
 
       const gainNode = audioCtx.createGain();
 
@@ -108,6 +91,7 @@ export const UiPlayerContorl: React.FC<{}> = () => {
                 (oldStateInterval) => {
                   const lastTimeUpdate = audioCtx.currentTime;
                   const timeOffsetInterval = oldStateInterval.timeOffset + (lastTimeUpdate - oldStateInterval.lastTimeUpdate);
+
                   return {
                     ...oldStateInterval,
                     timeOffset: timeOffsetInterval,
@@ -116,12 +100,11 @@ export const UiPlayerContorl: React.FC<{}> = () => {
                 },
               );
             },
-            4000,
+            100,
           );
 
           return {
             sp,
-            audioprocessCallback,
             gainNode,
             audioBuffer,
             source,
@@ -133,7 +116,22 @@ export const UiPlayerContorl: React.FC<{}> = () => {
         },
       );
     },
-    [handlePlayMusic, volume, audioprocessCallback],
+    [handlePlayMusic, volume],
+  );
+
+  React.useEffect(
+    () => {
+      if (state.sp && current_player_state === PLAYER_STATE__PLAY) {
+        return () => {
+          const audioCtx = getAudioCtx();
+
+          state.source.disconnect(state.gainNode);
+          state.gainNode.disconnect(state.sp);
+          state.sp.disconnect(audioCtx.destination);
+        };
+      }
+    },
+    [state.sp, current_player_state],
   );
 
   const callBackPause = React.useCallback(
@@ -145,7 +143,6 @@ export const UiPlayerContorl: React.FC<{}> = () => {
 
           oldState.source.stop();
           clearInterval(oldState.intervalId);
-          oldState.sp.removeEventListener('audioprocess', oldState.audioprocessCallback);
           const timeOffset = oldState.timeOffset + (audioCtx.currentTime - oldState.lastTimeUpdate);
 
           return {
@@ -158,6 +155,16 @@ export const UiPlayerContorl: React.FC<{}> = () => {
       );
     },
     [handlePlayMusic],
+  );
+
+  const handleChangeTakeVolume = React.useCallback(
+    () => {
+      setSomeTakeToShow((oldState) => ({
+        ...oldState,
+        takeVolume: !oldState.takeVolume,
+      }));
+    },
+    [],
   );
 
   React.useEffect(
@@ -180,13 +187,32 @@ export const UiPlayerContorl: React.FC<{}> = () => {
           }
           {
             Boolean(current_player_state === PLAYER_STATE__PLAY) && (
-              <button onClick={callBackPause} disabled={NEED_UPDATE || Boolean(!state.intervalId)}>Pause</button>
+              <button onClick={callBackPause} disabled={!NEED_UPDATE || Boolean(!state.intervalId)}>Pause</button>
             )
           }
         </div>
         <div>
           <label>
+            Не учитывать громкость
+            <input type="checkbox" checked={someTakeToShow.takeVolume} onChange={handleChangeTakeVolume} />
+          </label>
+        </div>
+        <div>
+          <label>
+            Громкость ({volume * 100}%)
             <input type="range" min="0" max="1" step="0.01" onChange={handleChangeVolume} value={volume} />
+          </label>
+        </div>
+        <div>
+          <label>
+            Количество повторений ({multiply * 2})
+            <input type="range" min="1" max="10" step="1" onChange={handleChangeMultiply} value={multiply} />
+          </label>
+        </div>
+        <div>
+          <label>
+            Количество объединений ({2 ** unionBlocks})
+            <input type="range" min="0" max={Math.log2(monoDataLength) - 1} step="1" onChange={handleChangeUnionBlocks} value={unionBlocks} />
           </label>
         </div>
         <div>
@@ -194,7 +220,7 @@ export const UiPlayerContorl: React.FC<{}> = () => {
           <progress value={state.timeOffset || 0} max={state.audioBuffer && state.audioBuffer.duration} />
           {secondsInMMSS(state.audioBuffer && state.audioBuffer.duration)}
         </div>
-        <UI.CanvasVisualizer monoData={monoData} />
+        <UI.CanvasVisualizer sp={state.sp} someTakeToShow={someTakeToShow} monoDataLength={monoDataLength} />
       </div>
     ),
     [
