@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { usePlayerVolume, usePlayerStateOfPlay, usePlayerMultiply, usePlayerUnionBlocks } from 'components/player_context/hooks/state_hooks';
 import { PLAYER_STATE__PLAY } from 'constants/play_state';
+import useSelector from 'components/player_context/hooks/useSelector';
+import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay } from 'components/player_context/hooks/selectors';
 
 const canvasH = 512;
 const canvasW = canvasH;
@@ -36,17 +37,17 @@ type Props = {
   };
 };
 
-export const UiCanvasVisualizer: React.FC<Props> = React.memo(
+const CanvasVisualizer: React.FC<Props> = React.memo(
   (props) => {
     const [monoData, setMonoData] = React.useState((new Array(props.monoDataLength)).fill(0));
 
     const ref = React.useRef<HTMLCanvasElement>();
 
-    const volume = usePlayerVolume();
-    const multiply = usePlayerMultiply();
-    const unionBlocks = usePlayerUnionBlocks();
+    const volume = useSelector(selectVolume);
+    const multiply = useSelector(selectMultiply);
+    const unionBlocks = useSelector(selectUnionBlocks);
 
-    const current_player_state = usePlayerStateOfPlay();
+    const current_player_state = useSelector(selectStateOfPlay);
 
     const audioprocessCallback = React.useCallback(
       (ape: AudioProcessingEvent) => {
@@ -155,3 +156,5 @@ export const UiCanvasVisualizer: React.FC<Props> = React.memo(
     return <canvas width={canvasW} height={canvasH} ref={ref} />;
   },
 );
+
+export default CanvasVisualizer;

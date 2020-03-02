@@ -1,12 +1,15 @@
 import * as React from 'react';
-import { usePlayerStateOfPlay, usePlayerVolume, usePlayerMultiply, usePlayerUnionBlocks } from 'components/player_context/hooks/state_hooks';
+
 import { PLAYER_STATE__STOP, PLAYER_STATE__PAUSE, PLAYER_STATE__PLAY } from 'constants/play_state';
-import { usePlayMusic, usePauseMusic, useChangeVolume, useChangeMultiply, useChangeUnionBlocks } from 'components/player_context/hooks/actions_hook';
 
 import NF_Change from 'music/NF_Change.mp3';
 import { secondsInMMSS } from 'utils/time';
-import UI from 'components/ui/ui';
 import { NEED_UPDATE } from 'constants/need_update';
+import CanvasVisualizer from 'components/ui/molecules/canvas_visualizer/CanvasVisualizer';
+import useSelector from 'components/player_context/hooks/useSelector';
+import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay } from 'components/player_context/hooks/selectors';
+import useDispatch from 'components/player_context/hooks/useDispatch';
+import { changeStateOfPlay, changeVolume, changeMultiply, changeUnionBlocks } from 'components/player_context/actions';
 
 const cache: Record<string, AudioBuffer> = {};
 
@@ -17,7 +20,7 @@ const getAudioCtx = () => {
   return audioCtxTemp;
 };
 
-export const UiPlayerContorl: React.FC<{}> = () => {
+const PlayerControl: React.FC<{}> = () => {
   const [monoDataLength] = React.useState(256);
   const [state, setState] = React.useState<{
     sp: ScriptProcessorNode;
@@ -43,20 +46,36 @@ export const UiPlayerContorl: React.FC<{}> = () => {
     takeVolume: false,
   });
 
-  const current_player_state = usePlayerStateOfPlay();
-  const volume = usePlayerVolume();
-  const multiply = usePlayerMultiply();
-  const unionBlocks = usePlayerUnionBlocks();
+  const volume = useSelector(selectVolume);
+  const multiply = useSelector(selectMultiply);
+  const unionBlocks = useSelector(selectUnionBlocks);
 
-  const handlePlayMusic = usePlayMusic();
-  const handlePauseMusic = usePauseMusic();
-  const handleChangeVolume = useChangeVolume();
-  const handleChangeMultiply = useChangeMultiply();
-  const handleChangeUnionBlocks = useChangeUnionBlocks();
+  const current_player_state = useSelector(selectStateOfPlay);
+
+  const dispatch = useDispatch();
+
+  const handleChangeVolume = React.useCallback(
+    (event: any) => {
+      dispatch(changeVolume(Number(event.target.value ?? event)));
+    },
+    [],
+  );
+  const handleChangeMultiply = React.useCallback(
+    (event: any) => {
+      dispatch(changeMultiply(Number(event.target.value ?? event)));
+    },
+    [],
+  );
+  const handleChangeUnionBlocks = React.useCallback(
+    (event: any) => {
+      dispatch(changeUnionBlocks(Number(event.target.value ?? event)));
+    },
+    [],
+  );
 
   const callBackPlay = React.useCallback(
     async () => {
-      handlePlayMusic();
+      dispatch(changeStateOfPlay(PLAYER_STATE__PLAY));
       const audioCtx = getAudioCtx();
 
       // load
@@ -116,7 +135,31 @@ export const UiPlayerContorl: React.FC<{}> = () => {
         },
       );
     },
-    [handlePlayMusic, volume],
+    [volume],
+  );
+
+  React.useEffect(
+    () => {
+      if (state.source) {
+        const handleEnded = () => {
+          if (state.intervalId) {
+            clearInterval(state.intervalId);
+
+            setState((oldState) => ({
+              ...oldState,
+              intervalId: null,
+            }));
+          }
+        };
+
+        state.source.addEventListener('ended', handleEnded);
+
+        return () => {
+          state.source.removeEventListener('ended', handleEnded);
+        };
+      }
+    },
+    [state.source, state.intervalId],
   );
 
   React.useEffect(
@@ -136,25 +179,23 @@ export const UiPlayerContorl: React.FC<{}> = () => {
 
   const callBackPause = React.useCallback(
     () => {
-      handlePauseMusic();
+      dispatch(changeStateOfPlay(PLAYER_STATE__PAUSE));
       setState(
         (oldState) => {
           const audioCtx = getAudioCtx();
 
           oldState.source.stop();
-          clearInterval(oldState.intervalId);
           const timeOffset = oldState.timeOffset + (audioCtx.currentTime - oldState.lastTimeUpdate);
 
           return {
             ...oldState,
             timeOffset,
             lastTimeUpdate: audioCtx.currentTime,
-            intervalId: null,
           };
         },
       );
     },
-    [handlePlayMusic],
+    [],
   );
 
   const handleChangeTakeVolume = React.useCallback(
@@ -176,59 +217,52 @@ export const UiPlayerContorl: React.FC<{}> = () => {
     [state.gainNode, volume],
   );
 
-  return React.useMemo(
-    () => (
+  return (
+    <div>
       <div>
-        <div>
-          {
-            Boolean(current_player_state === PLAYER_STATE__STOP || current_player_state === PLAYER_STATE__PAUSE) && (
-              <button onClick={callBackPlay} disabled={Boolean(state.intervalId)}>Play</button>
-            )
-          }
-          {
-            Boolean(current_player_state === PLAYER_STATE__PLAY) && (
-              <button onClick={callBackPause} disabled={!NEED_UPDATE || Boolean(!state.intervalId)}>Pause</button>
-            )
-          }
-        </div>
-        <div>
-          <label>
-            Не учитывать громкость
-            <input type="checkbox" checked={someTakeToShow.takeVolume} onChange={handleChangeTakeVolume} />
-          </label>
-        </div>
-        <div>
-          <label>
-            Громкость ({volume * 100}%)
-            <input type="range" min="0" max="1" step="0.01" onChange={handleChangeVolume} value={volume} />
-          </label>
-        </div>
-        <div>
-          <label>
-            Количество повторений ({multiply * 2})
-            <input type="range" min="1" max="10" step="1" onChange={handleChangeMultiply} value={multiply} />
-          </label>
-        </div>
-        <div>
-          <label>
-            Количество объединений ({2 ** unionBlocks})
-            <input type="range" min="0" max={Math.log2(monoDataLength) - 1} step="1" onChange={handleChangeUnionBlocks} value={unionBlocks} />
-          </label>
-        </div>
-        <div>
-          {secondsInMMSS(state.timeOffset || 0)}
-          <progress value={state.timeOffset || 0} max={state.audioBuffer && state.audioBuffer.duration} />
-          {secondsInMMSS(state.audioBuffer && state.audioBuffer.duration)}
-        </div>
-        <UI.CanvasVisualizer sp={state.sp} someTakeToShow={someTakeToShow} monoDataLength={monoDataLength} />
+        {
+          Boolean(current_player_state === PLAYER_STATE__STOP || current_player_state === PLAYER_STATE__PAUSE) && (
+            <button onClick={callBackPlay} disabled={Boolean(state.intervalId)}>Play</button>
+          )
+        }
+        {
+          Boolean(current_player_state === PLAYER_STATE__PLAY) && (
+            <button onClick={callBackPause} disabled={!NEED_UPDATE || Boolean(!state.intervalId)}>Pause</button>
+          )
+        }
       </div>
-    ),
-    [
-      current_player_state,
-      callBackPlay,
-      callBackPause,
-      volume,
-      handleChangeVolume,
-    ],
+      <div>
+        <label>
+          Не учитывать громкость
+          <input type="checkbox" checked={someTakeToShow.takeVolume} onChange={handleChangeTakeVolume} />
+        </label>
+      </div>
+      <div>
+        <label>
+          Громкость ({ volume * 100 }%)
+          <input type="range" min="0" max="1" step="0.01" onChange={handleChangeVolume} value={volume} />
+        </label>
+      </div>
+      <div>
+        <label>
+          Количество повторений ({ multiply * 2 })
+          <input type="range" min="1" max="10" step="1" onChange={handleChangeMultiply} value={multiply} />
+        </label>
+      </div>
+      <div>
+        <label>
+          Количество объединений ({ 2 ** unionBlocks })
+          <input type="range" min="0" max={Math.log2(monoDataLength) - 1} step="1" onChange={handleChangeUnionBlocks} value={unionBlocks} />
+        </label>
+      </div>
+      <div>
+        {secondsInMMSS(state.timeOffset || 0)}
+        <progress value={state.timeOffset || 0} max={state.audioBuffer && state.audioBuffer.duration} />
+        {secondsInMMSS(state.audioBuffer && state.audioBuffer.duration)}
+      </div>
+      <CanvasVisualizer sp={state.sp} someTakeToShow={someTakeToShow} monoDataLength={monoDataLength} />
+    </div>
   );
 };
+
+export default PlayerControl;

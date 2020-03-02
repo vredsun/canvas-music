@@ -10,7 +10,7 @@ const Container = styled.div`
   align-items: center;
 `;
 
-export const UiCenterBox: React.FC<{}> = React.memo(
+const CenterBox: React.FC<{}> = React.memo(
   (props) => {
     return (
       <Container>
@@ -19,3 +19,5 @@ export const UiCenterBox: React.FC<{}> = React.memo(
     );
   },
 );
+
+export default CenterBox;
