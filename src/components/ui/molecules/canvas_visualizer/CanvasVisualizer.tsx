@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { PLAYER_STATE__PLAY } from 'constants/play_state';
-import useSelector from 'components/player_context/hooks/useSelector';
-import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay } from 'components/player_context/hooks/selectors';
+import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay } from 'components/store/selectors';
+import { useSelector } from 'vs-react-store';
 
 const canvasH = 512;
 const canvasW = canvasH;
@@ -145,7 +145,6 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
             ctx.lineTo(x, y);
           }
         }
-
         ctx.closePath();
 
         ctx.stroke();

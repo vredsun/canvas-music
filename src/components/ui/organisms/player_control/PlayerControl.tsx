@@ -6,10 +6,9 @@ import NF_Change from 'music/NF_Change.mp3';
 import { secondsInMMSS } from 'utils/time';
 import { NEED_UPDATE } from 'constants/need_update';
 import CanvasVisualizer from 'components/ui/molecules/canvas_visualizer/CanvasVisualizer';
-import useSelector from 'components/player_context/hooks/useSelector';
-import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay } from 'components/player_context/hooks/selectors';
-import useDispatch from 'components/player_context/hooks/useDispatch';
-import { changeStateOfPlay, changeVolume, changeMultiply, changeUnionBlocks } from 'components/player_context/actions';
+import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay } from 'components/store/selectors';
+import { changeStateOfPlay, changeVolume, changeMultiply, changeUnionBlocks } from 'components/store/actions';
+import { useSelector, useDispatch } from 'vs-react-store';
 
 const cache: Record<string, AudioBuffer> = {};
 

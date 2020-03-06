@@ -4,7 +4,7 @@
     "allowJs": true,
     "target": "es5",
     "module": "commonjs",
-    "declaration": false,
+    "declaration": true,
     "allowSyntheticDefaultImports": true,
     "pretty": true,
     "noImplicitAny": false,
@@ -20,7 +20,7 @@
     "noEmit": false,
     "noLib": false,
     "jsx": "react",
-    "sourceMap": false,
+    "sourceMap": true,
     "outDir": "dist",
     "lib": [
       "dom",
