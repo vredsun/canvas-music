@@ -1,14 +1,13 @@
 import * as React from 'react';
+import { useSelector, useDispatch } from 'vs-react-store';
 
 import { PLAYER_STATE__STOP, PLAYER_STATE__PAUSE, PLAYER_STATE__PLAY } from 'constants/play_state';
 
 import NF_Change from 'music/NF_Change.mp3';
 import { secondsInMMSS } from 'utils/time';
-import { NEED_UPDATE } from 'constants/need_update';
 import CanvasVisualizer from 'components/ui/molecules/canvas_visualizer/CanvasVisualizer';
 import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay } from 'components/store/selectors';
 import { changeStateOfPlay, changeVolume, changeMultiply, changeUnionBlocks } from 'components/store/actions';
-import { useSelector, useDispatch } from 'vs-react-store';
 
 const cache: Record<string, AudioBuffer> = {};
 
@@ -72,7 +71,7 @@ const PlayerControl: React.FC<{}> = () => {
     [],
   );
 
-  const callBackPlay = React.useCallback(
+  const handleClickPlay = React.useCallback(
     async () => {
       dispatch(changeStateOfPlay(PLAYER_STATE__PLAY));
       const audioCtx = getAudioCtx();
@@ -176,7 +175,7 @@ const PlayerControl: React.FC<{}> = () => {
     [state.sp, current_player_state],
   );
 
-  const callBackPause = React.useCallback(
+  const handleClickPause = React.useCallback(
     () => {
       dispatch(changeStateOfPlay(PLAYER_STATE__PAUSE));
       setState(
@@ -190,6 +189,24 @@ const PlayerControl: React.FC<{}> = () => {
             ...oldState,
             timeOffset,
             lastTimeUpdate: audioCtx.currentTime,
+          };
+        },
+      );
+    },
+    [],
+  );
+
+  const handleClickStop = React.useCallback(
+    () => {
+      dispatch(changeStateOfPlay(PLAYER_STATE__STOP));
+      setState(
+        (oldState) => {
+          oldState.source.stop();
+
+          return {
+            ...oldState,
+            timeOffset: 0,
+            lastTimeUpdate: 0,
           };
         },
       );
@@ -220,13 +237,26 @@ const PlayerControl: React.FC<{}> = () => {
     <div>
       <div>
         {
+          Boolean(current_player_state === PLAYER_STATE__PLAY || current_player_state === PLAYER_STATE__PAUSE) && (
+            <button
+              onClick={handleClickStop}
+              disabled={
+                current_player_state === PLAYER_STATE__PLAY
+                  ? Boolean(!state.intervalId)
+                  : Boolean(state.intervalId)
+              }
+              children="Stop"
+            />
+          )
+        }
+        {
           Boolean(current_player_state === PLAYER_STATE__STOP || current_player_state === PLAYER_STATE__PAUSE) && (
-            <button onClick={callBackPlay} disabled={Boolean(state.intervalId)}>Play</button>
+            <button onClick={handleClickPlay} disabled={Boolean(state.intervalId)}>Play</button>
           )
         }
         {
           Boolean(current_player_state === PLAYER_STATE__PLAY) && (
-            <button onClick={callBackPause} disabled={!NEED_UPDATE || Boolean(!state.intervalId)}>Pause</button>
+            <button onClick={handleClickPause} disabled={Boolean(!state.intervalId)}>Pause</button>
           )
         }
       </div>
