@@ -9,6 +9,7 @@ import CanvasVisualizer from 'components/ui/molecules/canvas_visualizer/CanvasVi
 import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay } from 'components/store/selectors';
 import { changeStateOfPlay, changeVolume, changeMultiply, changeUnionBlocks } from 'components/store/actions';
 import InputSelect from 'components/ui/atoms/input_select/InputSelect';
+import InputCheckbox from 'components/ui/atoms/input_checkbox/InputCheckbox';
 
 const cache: Record<string, AudioBuffer> = {};
 
@@ -264,7 +265,10 @@ const PlayerControl: React.FC<{}> = () => {
       <div>
         <label>
           Не учитывать громкость
-          <input type="checkbox" checked={someTakeToShow.takeVolume} onChange={handleChangeTakeVolume} />
+          <InputCheckbox
+            isChecked={someTakeToShow.takeVolume}
+            onChange={handleChangeTakeVolume}
+          />
         </label>
       </div>
       <div>

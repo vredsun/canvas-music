@@ -19,9 +19,11 @@ const GlobalStyle = createGlobalStyle`
   }
 
   ::selection {
+    background-color: #5588ff;
     color: white;
   }
   ::-moz-selection {
+    background-color: #5588ff;
     color: white;
   }
 `;
