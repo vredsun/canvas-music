@@ -7,9 +7,9 @@ import { createVsProvider } from 'vs-react-store';
 import MainContainer from 'components/ui/atoms/main_container/MainContainer';
 import CenterBox from 'components/ui/atoms/center_box/CenterBox';
 import PlayerControl from 'components/ui/organisms/player_control/PlayerControl';
-import { reducer, default_value, initStore } from 'components/store/reducer';
+import { reducer } from 'components/store/reducer';
 
-const VsStoreProvider = createVsProvider(reducer, default_value, initStore);
+const VsStoreProvider = createVsProvider(reducer);
 
 const App: React.FC<{}> = React.memo(
   () => {

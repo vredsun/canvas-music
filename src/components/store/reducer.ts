@@ -9,14 +9,14 @@ export type VsStoreContextValueState = {
   unionBlocks: number;
 };
 
-export const default_value: VsStoreContextValueState = {
+const default_value: VsStoreContextValueState = {
   state_of_play: PLAYER_STATE__STOP,
   volume: 0.5,
   multiply: 2,
   unionBlocks: 1,
 };
 
-export const initStore = (): VsStoreContextValueState => {
+const initStore = (): VsStoreContextValueState => {
   const userData: Partial<VsStoreContextValueState> = JSON.parse(localStorage.getItem('userData')) || {};
 
   return {
@@ -29,6 +29,9 @@ export const initStore = (): VsStoreContextValueState => {
 };
 
 export const reducer = createReducer<VsStoreContextValueState>(
+  () => {
+    return initStore();
+  },
   {
     [CHANGE_STATE_OF_PLAY](state, { payload }: ReturnType<typeof changeStateOfPlay>) {
       return {
