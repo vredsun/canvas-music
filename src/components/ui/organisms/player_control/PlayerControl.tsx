@@ -8,6 +8,7 @@ import { secondsInMMSS } from 'utils/time';
 import CanvasVisualizer from 'components/ui/molecules/canvas_visualizer/CanvasVisualizer';
 import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay } from 'components/store/selectors';
 import { changeStateOfPlay, changeVolume, changeMultiply, changeUnionBlocks } from 'components/store/actions';
+import InputSelect from 'components/ui/atoms/input_select/InputSelect';
 
 const cache: Record<string, AudioBuffer> = {};
 
@@ -54,19 +55,19 @@ const PlayerControl: React.FC<{}> = () => {
 
   const handleChangeVolume = React.useCallback(
     (event: any) => {
-      dispatch(changeVolume(Number(event.target.value ?? event)));
+      dispatch(changeVolume(Number(event?.target?.value ?? event)));
     },
     [],
   );
   const handleChangeMultiply = React.useCallback(
-    (event: any) => {
-      dispatch(changeMultiply(Number(event.target.value ?? event)));
+    (value: number) => {
+      dispatch(changeMultiply(value / 2));
     },
     [],
   );
   const handleChangeUnionBlocks = React.useCallback(
     (event: any) => {
-      dispatch(changeUnionBlocks(Number(event.target.value ?? event)));
+      dispatch(changeUnionBlocks(Number(event?.target?.value ?? event)));
     },
     [],
   );
@@ -268,20 +269,33 @@ const PlayerControl: React.FC<{}> = () => {
       </div>
       <div>
         <label>
-          Громкость ({ volume * 100 }%)
+          Громкость
           <input type="range" min="0" max="1" step="0.01" onChange={handleChangeVolume} value={volume} />
+          ({ volume * 100 }%)
         </label>
       </div>
       <div>
         <label>
-          Количество повторений ({ multiply * 2 })
-          <input type="range" min="1" max="10" step="1" onChange={handleChangeMultiply} value={multiply} />
+          Количество повторений
+          <InputSelect
+            rangeFrom={2}
+            rangeTo={20}
+            rangeStep={2}
+            onChange={handleChangeMultiply}
+            value={multiply * 2}
+          />
         </label>
       </div>
       <div>
         <label>
-          Количество объединений ({ 2 ** unionBlocks })
-          <input type="range" min="0" max={Math.log2(monoDataLength) - 1} step="1" onChange={handleChangeUnionBlocks} value={unionBlocks} />
+          Количество объединений
+          <InputSelect
+            rangeFrom={0}
+            rangeTo={Math.log2(monoDataLength) - 1}
+            rangeStep={1}
+            onChange={handleChangeUnionBlocks}
+            value={unionBlocks}
+          />
         </label>
       </div>
       <div>
