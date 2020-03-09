@@ -32,9 +32,6 @@ const getYByLineData = getFuncGetCoordByLineData(getYValue);
 type Props = {
   sp: ScriptProcessorNode;
   monoDataLength: number;
-  someTakeToShow: {
-    takeVolume: boolean;
-  };
 };
 
 const CanvasVisualizer: React.FC<Props> = React.memo(
@@ -125,9 +122,6 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
 
           if (!((index + 1) % countByOne)) {
             let newItem = lastSumm / countByOne;
-            if (props.someTakeToShow.takeVolume) {
-              newItem = volume ? newItem / volume : 0;
-            }
             newArr.push(...Array.from({ length: countByOne }).fill(newItem));
             lastSumm = 0;
           }
@@ -149,7 +143,7 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
 
         ctx.stroke();
       },
-      [monoData, canvasW, props.someTakeToShow, volume, multiply, unionBlocks],
+      [monoData, canvasW, volume, multiply, unionBlocks],
     );
 
     return <canvas width={canvasW} height={canvasH} ref={ref} />;

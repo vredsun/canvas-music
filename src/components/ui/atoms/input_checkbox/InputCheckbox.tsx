@@ -8,6 +8,7 @@ enum Size {
 }
 
 type Props<T = any> = {
+  label?: string;
   value?: T;
   size?: keyof typeof Size;
   isChecked: boolean;
@@ -62,12 +63,15 @@ const InputCheckbox: React.FC<Props> = React.memo(
       [props.onChange, props.isChecked, props.isDisabled],
     );
     return (
-      <Container
-        sizeKey={props.size ?? 'medium'}
-        isChecked={props.isChecked}
-        onClick={handleClick}
-        isDisabled={props.isDisabled}
-      />
+      <label>
+        {props.label}
+        <Container
+          sizeKey={props.size ?? 'medium'}
+          isChecked={props.isChecked}
+          onClick={handleClick}
+          isDisabled={props.isDisabled}
+        />
+      </label>
     );
   },
 );

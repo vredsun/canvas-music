@@ -1,6 +1,8 @@
 import * as React from 'react';
 
 type Props = {
+  label?: string;
+
   rangeFrom: number;
   rangeTo: number;
   rangeStep: number;
@@ -35,13 +37,16 @@ const InputSelect: React.FC<Props> = React.memo(
     );
 
     return (
-      <select onChange={handleChange} value={props.value}>
-        {
-          optionsArr.map((rowData) => (
-            <option key={rowData} value={rowData}>{rowData}</option>
-          ))
-        }
-      </select>
+      <label>
+        {props.label}
+        <select onChange={handleChange} value={props.value}>
+          {
+            optionsArr.map((rowData) => (
+              <option key={rowData} value={rowData}>{rowData}</option>
+            ))
+          }
+        </select>
+      </label>
     );
   },
 );
