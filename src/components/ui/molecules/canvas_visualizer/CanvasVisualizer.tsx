@@ -46,38 +46,43 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
 
     const current_player_state = useSelector(selectStateOfPlay);
 
-    const audioprocessCallback = React.useCallback(
-      (ape: AudioProcessingEvent) => {
-        const inputBuffer = ape.inputBuffer;
-        const outputBuffer = ape.outputBuffer;
-
-        const channelsLen = outputBuffer.numberOfChannels;
-        const sampleLen = inputBuffer.length;
-
-        // для визулизации создаем монобуфер
-        const mono = (new Array(sampleLen)).fill(0);
-
-        for (let channel = 0; channel < channelsLen; channel++ ) {
-          const inputData = inputBuffer.getChannelData(channel);
-          const outputData = outputBuffer.getChannelData(channel);
-          // устанавливаем выходные данные = входным
-          // здесь можно изменить в них что-то или наложить эффект
-          outputData.set(inputData);
-
-          // микшируем в монобуфер все каналы
-          for (let sample = 0; sample < sampleLen; sample++ ) {
-            mono[sample] = (mono[sample] + inputData[sample]) / 2;
-          }
-        }
-
-        setMonoData(mono);
-      },
-      [],
-    );
-
     React.useEffect(
       () => {
         if (props.sp?.removeEventListener && current_player_state === PLAYER_STATE.PLAY) {
+          const ping = 5; // раз в ping происходит обновление данных
+
+          let i = 0;
+          const audioprocessCallback = (ape: AudioProcessingEvent) => {
+            const inputBuffer = ape.inputBuffer;
+            const outputBuffer = ape.outputBuffer;
+
+            const channelsLen = outputBuffer.numberOfChannels;
+            const sampleLen = inputBuffer.length;
+
+            // для визулизации создаем монобуфер
+            const mono = (new Array(sampleLen)).fill(0);
+
+            for (let channel = 0; channel < channelsLen; channel++ ) {
+              const inputData = inputBuffer.getChannelData(channel);
+              const outputData = outputBuffer.getChannelData(channel);
+              // устанавливаем выходные данные = входным
+              // здесь можно изменить в них что-то или наложить эффект
+              outputData.set(inputData);
+
+              if (i % ping === 0) {
+                // микшируем в монобуфер все каналы
+                for (let sample = 0; sample < sampleLen; sample++ ) {
+                  mono[sample] = (mono[sample] + inputData[sample]) / 2;
+                }
+              }
+            }
+
+            if (i % ping === 0) {
+              setMonoData(mono);
+            }
+            i = (i + 1) % ping;
+          };
+
           props.sp.addEventListener('audioprocess', audioprocessCallback);
 
           return () => {
@@ -85,7 +90,12 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
           };
         }
       },
-      [audioprocessCallback, props.sp, current_player_state],
+      [props.sp, current_player_state],
+    );
+
+    const stepToVisible = Math.max(
+      1,
+      Math.round(2 * Math.PI * canvasHh / (props.monoDataLength * 2 * multiply * 2)),
     );
 
     React.useEffect(
@@ -100,50 +110,45 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
 
         ctx.beginPath();
 
+        let currentValue = 0;
         let lastSumm = 0;
         let countByOne = 2 ** unionBlocks;
 
-        let initMonoData = [
-          ...monoData,
-          ...[...monoData].reverse(),
-        ];
+        let initMonoData = monoData;
 
-        let arr = [];
+        const allItems = props.monoDataLength * (multiply * 2);
 
-        for (let i = 0; i < multiply; i += 1) {
-          arr = [
-            ...arr,
-            ...initMonoData,
-          ];
-        }
+        let direction = 1;
 
-        arr = arr.reduce((newArr, item, index) => {
-          lastSumm += item;
+        for (let i = 0; i < allItems; i += 1) {
+          const rawNewIndex = i % props.monoDataLength;
+          if (rawNewIndex === 0) {
+            direction = (direction + 1) % 2;
+          }
+          const newIndex = direction ? props.monoDataLength - 1 - rawNewIndex : rawNewIndex;
 
-          if (!((index + 1) % countByOne)) {
-            let newItem = lastSumm / countByOne;
-            newArr.push(...Array.from({ length: countByOne }).fill(newItem));
+          if ((i + 1) % countByOne === 0) {
+            currentValue = lastSumm / countByOne;
             lastSumm = 0;
+
+            for (let j = i - countByOne; j < i; j ++) {
+              const x = getXByLineData(canvasHh, j, allItems, currentValue, 0);
+              const y = getYByLineData(canvasHh, j, allItems, currentValue, 0);
+
+              if (i === 0) {
+                ctx.moveTo(x, y);
+              } else {
+                ctx.lineTo(x, y);
+              }
+            }
           }
-
-          return newArr;
-        }, []);
-
-        for (let i = 0, length = arr.length; i < length; i += 1) {
-          const x = getXByLineData(canvasHh, i, length, arr[i], 0);
-          const y = getYByLineData(canvasHh, i, length, arr[i], 0);
-
-          if (i === 0) {
-            ctx.moveTo(x, y);
-          } else {
-            ctx.lineTo(x, y);
-          }
+          lastSumm += initMonoData[newIndex];
         }
         ctx.closePath();
 
         ctx.stroke();
       },
-      [monoData, canvasW, volume, multiply, unionBlocks],
+      [stepToVisible, monoData, canvasW, volume, multiply, unionBlocks],
     );
 
     return <canvas width={canvasW} height={canvasH} ref={ref} />;

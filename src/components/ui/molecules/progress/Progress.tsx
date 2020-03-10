@@ -1,15 +1,36 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { useSelector } from 'vs-react-store';
+
 import { selectStateOfPlay } from 'components/store/selectors';
-import { NEED_UPDATE } from 'constants/need_update';
 import { PLAYER_STATE } from 'constants/play_state';
+import { secondsInMMSS } from 'utils/time';
 
 const Container = styled.div`
+  position: relative;
   width: 100%;
-  height: 20px;
+  height: 30px;
+
+  cursor: pointer;
 
   background-color: rgba(0, 0, 0, 0.25);
+`;
+
+const TextPlashkaContainer = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 100%;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.15rem 10px;
+
+  color: white;
+  pointer-events: none;
 `;
 
 const Status = styled.div<{ trackDuration: number; currentWidth: number }>`
@@ -73,10 +94,7 @@ const Progress: React.FC<Props> = React.memo(
         const percentOfTrack = (event.screenX - (event.target as HTMLDivElement).getBoundingClientRect().left) / maxWidth;
         const newTrackPosition = props.trackDuration * percentOfTrack;
 
-        if (NEED_UPDATE) {
-          props.handleChangeCurrentPosition(newTrackPosition);
-          console.info({ maxWidth, newTrackPosition, trackDuration: props.trackDuration, percentOfTrack });
-        }
+        props.handleChangeCurrentPosition(newTrackPosition);
       },
       [props.trackDuration, props.handleChangeCurrentPosition],
     );
@@ -87,6 +105,10 @@ const Progress: React.FC<Props> = React.memo(
           trackDuration={transitionDurection}
           currentWidth={currentWidth}
         />
+        <TextPlashkaContainer>
+          <span>{secondsInMMSS(props.currentPosition)}</span>
+          <span>{secondsInMMSS(props.trackDuration ?? 0)}</span>
+        </TextPlashkaContainer>
       </Container>
     );
   },

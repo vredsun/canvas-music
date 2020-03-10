@@ -4,7 +4,6 @@ import { useSelector, useDispatch } from 'vs-react-store';
 import { PLAYER_STATE } from 'constants/play_state';
 
 import NF_Change from 'music/NF_Change.mp3';
-import { secondsInMMSS } from 'utils/time';
 import CanvasVisualizer from 'components/ui/molecules/canvas_visualizer/CanvasVisualizer';
 import { selectStateOfPlay } from 'components/store/selectors';
 import { changeStateOfPlay } from 'components/store/actions';
@@ -233,14 +232,12 @@ const PlayerControl: React.FC<{}> = () => {
         />
       </div>
       <div>
-        {secondsInMMSS(state.timeOffset || 0)}
         <Progress
           trackDuration={state.audioBuffer?.duration ?? 0}
           currentPosition={state.timeOffset || 0}
           handleChangeCurrentPosition={handleChangeCurrentPosition}
           wasMoveByTimeOffset={state.wasMoveByTimeOffset}
         />
-        {secondsInMMSS(state.audioBuffer && state.audioBuffer.duration)}
       </div>
       <CanvasVisualizer sp={state.sp} monoDataLength={monoDataLength} />
     </div>
