@@ -246,6 +246,7 @@ const PlayerControl: React.FC<{}> = () => {
             ...oldState,
             timeOffset: 0,
             lastTimeUpdate: 0,
+            wasMoveByTimeOffset: true,
           };
         },
       );
