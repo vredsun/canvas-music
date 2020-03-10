@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { PLAYER_STATE__PLAY } from 'constants/play_state';
+import { PLAYER_STATE } from 'constants/play_state';
 import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay } from 'components/store/selectors';
 import { useSelector } from 'vs-react-store';
 
@@ -77,7 +77,7 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
 
     React.useEffect(
       () => {
-        if (props.sp?.removeEventListener && current_player_state === PLAYER_STATE__PLAY) {
+        if (props.sp?.removeEventListener && current_player_state === PLAYER_STATE.PLAY) {
           props.sp.addEventListener('audioprocess', audioprocessCallback);
 
           return () => {

@@ -1,16 +1,16 @@
 import { createReducer } from 'vs-react-store';
 import { CHANGE_VOLUME, changeVolume, CHANGE_MULTIPLY, changeMultiply, CHANGE_UNION_BLOCKS, changeUnionBlocks, CHANGE_STATE_OF_PLAY, changeStateOfPlay } from 'components/store/actions';
-import { PLAYER_STATE__PLAY, PLAYER_STATE__PAUSE, PLAYER_STATE__STOP } from 'constants/play_state';
+import { PLAYER_STATE } from 'constants/play_state';
 
 export type VsStoreContextValueState = {
-  state_of_play: typeof PLAYER_STATE__PLAY | typeof PLAYER_STATE__PAUSE | typeof PLAYER_STATE__STOP;
+  state_of_play: PLAYER_STATE;
   volume: number;
   multiply: number;
   unionBlocks: number;
 };
 
 const default_value: VsStoreContextValueState = {
-  state_of_play: PLAYER_STATE__STOP,
+  state_of_play: PLAYER_STATE.PREPARE,
   volume: 0.5,
   multiply: 2,
   unionBlocks: 1,

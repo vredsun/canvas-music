@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useSelector, useDispatch } from 'vs-react-store';
 
-import { PLAYER_STATE__STOP, PLAYER_STATE__PAUSE, PLAYER_STATE__PLAY } from 'constants/play_state';
+import { PLAYER_STATE } from 'constants/play_state';
 
 import NF_Change from 'music/NF_Change.mp3';
 import { secondsInMMSS } from 'utils/time';
@@ -14,15 +14,10 @@ import InputMultiply from 'components/ui/molecules/input_multiply/InputMultiply'
 import InputVolume from 'components/ui/molecules/input_volume/InputVolume';
 import TriggerVolume from 'components/ui/molecules/trigger_volume/TriggerVolume';
 import Progress from 'components/ui/molecules/progress/Progress';
+import PlayerButtons from 'components/ui/molecules/player_buttons/PlayerButtons';
+import { getAudioCtx } from 'global';
 
 const cache: Record<string, AudioBuffer> = {};
-
-let audioCtxTemp: AudioContext;
-const getAudioCtx = () => {
-  audioCtxTemp = audioCtxTemp || new window.AudioContext();
-
-  return audioCtxTemp;
-};
 
 const PlayerControl: React.FC<{}> = () => {
   const [trackData, setTrackData] = React.useState<AudioBuffer>();
@@ -36,7 +31,6 @@ const PlayerControl: React.FC<{}> = () => {
     timeOffset: number;
     startTime: number;
     intervalId: NodeJS.Timeout;
-    lastTimeUpdate: number;
     wasMoveByTimeOffset: boolean;
   }>({
     sp: null,
@@ -46,22 +40,12 @@ const PlayerControl: React.FC<{}> = () => {
     timeOffset: null,
     startTime: null,
     intervalId: null,
-    lastTimeUpdate: null,
     wasMoveByTimeOffset: false,
   });
 
   const current_player_state = useSelector(selectStateOfPlay);
 
   const dispatch = useDispatch();
-
-  React.useEffect(
-    () => {
-      if (current_player_state === PLAYER_STATE__PLAY) {
-
-      }
-    },
-    [current_player_state],
-  );
 
   React.useEffect(
     () => {
@@ -78,18 +62,16 @@ const PlayerControl: React.FC<{}> = () => {
           }
 
           setTrackData(trackDecode);
+          dispatch(changeStateOfPlay(PLAYER_STATE.STOP));
         }
       );
     },
     [],
   );
-
-  const handleClickPlay = React.useCallback(
+  React.useEffect(
     () => {
-      if (trackData) {
-        dispatch(changeStateOfPlay(PLAYER_STATE__PLAY));
+      if (trackData && current_player_state === PLAYER_STATE.PLAY) {
         const audioCtx = getAudioCtx();
-
         const audioBuffer = trackData;
 
         const source = audioCtx.createBufferSource();
@@ -104,21 +86,20 @@ const PlayerControl: React.FC<{}> = () => {
 
         setState(
           (oldState) => {
-            const startTime = audioCtx.currentTime;
             const timeOffset = oldState.timeOffset || 0;
+            const startTime = audioCtx.currentTime - timeOffset;
+
             source.start(0, timeOffset);
 
             const intervalId = setInterval(
               () => {
                 setState(
                   (oldStateInterval) => {
-                    const lastTimeUpdate = audioCtx.currentTime;
-                    const timeOffsetInterval = oldStateInterval.timeOffset + (lastTimeUpdate - oldStateInterval.lastTimeUpdate);
+                    const timeOffsetNew = (audioCtx.currentTime - oldStateInterval.startTime);
 
                     return {
                       ...oldStateInterval,
-                      timeOffset: timeOffsetInterval,
-                      lastTimeUpdate,
+                      timeOffset: timeOffsetNew,
                       wasMoveByTimeOffset: false,
                     };
                   },
@@ -135,47 +116,18 @@ const PlayerControl: React.FC<{}> = () => {
               source,
               timeOffset,
               startTime,
-              lastTimeUpdate: startTime,
               intervalId,
             };
           },
         );
       }
-
-      return () => {
-        handleClickStop();
-      };
     },
-    [trackData],
+    [trackData, current_player_state === PLAYER_STATE.PLAY],
   );
 
   React.useEffect(
     () => {
-      if (state.source) {
-        const handleEnded = () => {
-          if (state.intervalId) {
-            clearInterval(state.intervalId);
-
-            setState((oldState) => ({
-              ...oldState,
-              intervalId: null,
-            }));
-          }
-        };
-
-        state.source.addEventListener('ended', handleEnded);
-
-        return () => {
-          state.source.removeEventListener('ended', handleEnded);
-        };
-      }
-    },
-    [state.source, state.intervalId],
-  );
-
-  React.useEffect(
-    () => {
-      if (state.sp && current_player_state === PLAYER_STATE__PLAY) {
+      if (state.sp && current_player_state === PLAYER_STATE.PLAY) {
         return () => {
           const audioCtx = getAudioCtx();
 
@@ -189,98 +141,85 @@ const PlayerControl: React.FC<{}> = () => {
         };
       }
     },
-    [state.sp, current_player_state],
+    [state.sp, current_player_state === PLAYER_STATE.PLAY],
   );
 
-  const handleClickPause = React.useCallback(
+  React.useEffect(
     () => {
-      dispatch(changeStateOfPlay(PLAYER_STATE__PAUSE));
-      setState(
-        (oldState) => {
-          const audioCtx = getAudioCtx();
+      if (state.source) {
+        const handleEnded = () => {
+          if (state.intervalId) {
+            clearInterval(state.intervalId);
 
-          oldState.source.stop();
-          const timeOffset = oldState.timeOffset + (audioCtx.currentTime - oldState.lastTimeUpdate);
+            setState((oldState) => {
+              const audioCtx = getAudioCtx();
+              let timeOffset = 0;
 
-          return {
-            ...oldState,
-            timeOffset,
-            lastTimeUpdate: audioCtx.currentTime,
-          };
-        },
-      );
+              if (current_player_state === PLAYER_STATE.PAUSE) {
+                timeOffset = (audioCtx.currentTime - oldState.startTime);
+              }
+
+              if (current_player_state === PLAYER_STATE.PLAY) {
+                dispatch(changeStateOfPlay(PLAYER_STATE.STOP));
+              }
+
+              return {
+                ...oldState,
+                intervalId: null,
+                lastTimeStart: 0,
+                timeOffset,
+                wasMoveByTimeOffset: true,
+              };
+            });
+          }
+        };
+
+        state.source.addEventListener('ended', handleEnded);
+
+        return () => {
+          state.source.removeEventListener('ended', handleEnded);
+        };
+      }
     },
-    [],
+    [state.source, current_player_state],
   );
 
   const handleChangeCurrentPosition = React.useCallback(
     (newTimeOffset) => {
-      handleClickPause();
+      // handleClickPause();
       setState((oldState) => {
+        const audioCtx = getAudioCtx();
+        dispatch(changeStateOfPlay(PLAYER_STATE.PAUSE));
+
         const timeOffset = newTimeOffset;
-        if (oldState.intervalId) {
-          clearInterval(oldState.intervalId);
-        }
+        const startTime = audioCtx.currentTime - timeOffset;
+
         return {
           ...oldState,
+          startTime,
           timeOffset,
           wasMoveByTimeOffset: true,
-          intervalId: null,
         };
       });
-      if (current_player_state === PLAYER_STATE__PLAY) {
-        handleClickPlay();
-      }
-    },
-    [handleClickPause, handleClickPlay, current_player_state],
-  );
 
-  const handleClickStop = React.useCallback(
-    () => {
-      dispatch(changeStateOfPlay(PLAYER_STATE__STOP));
-      setState(
-        (oldState) => {
-          oldState.source?.stop();
-
-          return {
-            ...oldState,
-            timeOffset: 0,
-            lastTimeUpdate: 0,
-            wasMoveByTimeOffset: true,
-          };
+      setTimeout(
+        () => {
+          if (current_player_state === PLAYER_STATE.PLAY) {
+            dispatch(changeStateOfPlay(PLAYER_STATE.PLAY));
+          }
         },
+        100,
       );
+
     },
-    [],
+    [
+      current_player_state,
+    ],
   );
 
   return (
     <div>
-      <div>
-        {
-          Boolean(current_player_state === PLAYER_STATE__PLAY || current_player_state === PLAYER_STATE__PAUSE) && (
-            <button
-              onClick={handleClickStop}
-              disabled={
-                current_player_state === PLAYER_STATE__PLAY
-                  ? Boolean(!state.intervalId)
-                  : Boolean(state.intervalId)
-              }
-              children="Stop"
-            />
-          )
-        }
-        {
-          Boolean(current_player_state === PLAYER_STATE__STOP || current_player_state === PLAYER_STATE__PAUSE) && (
-            <button onClick={handleClickPlay} disabled={Boolean(state.intervalId)}>Play</button>
-          )
-        }
-        {
-          Boolean(current_player_state === PLAYER_STATE__PLAY) && (
-            <button onClick={handleClickPause} disabled={Boolean(!state.intervalId)}>Pause</button>
-          )
-        }
-      </div>
+      <PlayerButtons souce={state.source} />
       <div>
         <InputVolume />
         <TriggerVolume gainNode={state.gainNode} />

@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useSelector } from 'vs-react-store';
 import { selectStateOfPlay } from 'components/store/selectors';
 import { NEED_UPDATE } from 'constants/need_update';
-import { PLAYER_STATE__PLAY } from 'constants/play_state';
+import { PLAYER_STATE } from 'constants/play_state';
 
 const Container = styled.div`
   width: 100%;
@@ -47,13 +47,13 @@ const Progress: React.FC<Props> = React.memo(
         if (!props.wasMoveByTimeOffset) {
           const maxWidth = refContainer.current.clientWidth;
 
-          if (current_player_state === PLAYER_STATE__PLAY) {
+          if (current_player_state === PLAYER_STATE.PLAY && props.trackDuration) {
             setTransitionDurection(props.trackDuration - props.currentPosition);
             setCurrentWidth(maxWidth);
           }
         }
       },
-      [current_player_state, props.wasMoveByTimeOffset],
+      [current_player_state, props.wasMoveByTimeOffset, props.trackDuration],
     );
 
     React.useEffect(
