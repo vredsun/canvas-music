@@ -3,7 +3,6 @@ import { useSelector, useDispatch } from 'vs-react-store';
 
 import { PLAYER_STATE } from 'constants/play_state';
 
-import NF_Change from 'music/NF_Change.mp3';
 import CanvasVisualizer from 'components/ui/molecules/canvas_visualizer/CanvasVisualizer';
 import { selectStateOfPlay } from 'store/selectors';
 import { changeStateOfPlay, changeLoadedBytes } from 'store/actions';
@@ -17,26 +16,23 @@ import PlayerButtons from 'components/ui/molecules/player_buttons/PlayerButtons'
 import { getAudioCtx } from 'global';
 import FlexContainer from 'components/ui/atoms/flex_container/FlexContainer';
 import loadTrack from 'utils/load_track';
-
-const cache: Record<string, AudioBuffer> = {};
+import InputAudio from 'components/ui/atoms/input_audio/InputAudio';
+import { isNull } from 'util';
+import groupBy from 'lodash-es/groupBy';
+import useAudio from 'components/ui/organisms/player_control/useAudio';
 
 const PlayerControl: React.FC<{}> = () => {
+  const [currentTrackPlayIndex, setCurrentTrackPlayIndex] = React.useState(null);
+  const [trackList, setTrackList] = React.useState<Array<File>>([]);
+
   const [trackData, setTrackData] = React.useState<AudioBuffer>();
 
   const [monoDataLength] = React.useState(256);
   const [state, setState] = React.useState<{
-    sp: ScriptProcessorNode;
-    gainNode: GainNode;
-    source: AudioBufferSourceNode;
-    audioBuffer: AudioBuffer;
     timeOffset: number;
     startTime: number;
     wasMoveByTimeOffset: boolean;
   }>({
-    sp: null,
-    gainNode: null,
-    source: null,
-    audioBuffer: null,
     timeOffset: null,
     startTime: null,
     wasMoveByTimeOffset: false,
@@ -46,75 +42,100 @@ const PlayerControl: React.FC<{}> = () => {
 
   const dispatch = useDispatch();
 
+  const handleRemoveTrack = React.useCallback(
+    (file: File) => {
+      setTrackList((oldState) => oldState.filter((fileAudio) => fileAudio !== file));
+    },
+    [],
+  );
+  const handleAddTrack = React.useCallback(
+    (files: Array<File>) => {
+      setTrackList((oldState) => {
+        const newStateObj = groupBy(oldState, 'name');
+        const filtredAudio = files.filter((fileAudio) => !newStateObj[fileAudio.name]);
+
+        return [
+          ...oldState,
+          ...filtredAudio,
+        ];
+      });
+    },
+    [],
+  );
+
   React.useEffect(
     () => {
-      setImmediate(
-        async () => {
-          let trackDecode = cache[NF_Change];
-          if (!trackDecode) {
-            trackDecode = cache[NF_Change] = await loadTrack(
-              NF_Change,
+      if (trackList.length) {
+        if (isNull(currentTrackPlayIndex)) {
+          setCurrentTrackPlayIndex(0);
+        }
+      } else {
+        setCurrentTrackPlayIndex(null);
+      }
+    },
+    [trackList, currentTrackPlayIndex],
+  );
+
+  React.useEffect(
+    () => {
+      if (!isNull(currentTrackPlayIndex)) {
+        const track = trackList[currentTrackPlayIndex];
+        const trackUrl = window.URL.createObjectURL(track);
+
+        dispatch(changeStateOfPlay(PLAYER_STATE.PREPARE));
+
+        setImmediate(
+          async () => {
+            const trackDecode = await loadTrack(
+              trackUrl,
               (event) => {
                 dispatch(changeLoadedBytes(event.loaded, event.total));
               },
             );
-          }
 
-          setTrackData(trackDecode);
-          dispatch(changeStateOfPlay(PLAYER_STATE.STOP));
-        }
-      );
+            setTrackData(trackDecode);
+            dispatch(changeStateOfPlay(PLAYER_STATE.STOP));
+          }
+        );
+      }
     },
-    [],
+    [currentTrackPlayIndex, trackList],
   );
+
+  const audioData = useAudio(
+    trackData,
+    monoDataLength,
+    current_player_state === PLAYER_STATE.PLAY,
+    state.wasMoveByTimeOffset,
+  );
+
   React.useEffect(
     () => {
-      if (trackData && current_player_state === PLAYER_STATE.PLAY) {
-        const audioCtx = getAudioCtx();
-        const audioBuffer = trackData;
-
-        const source = audioCtx.createBufferSource();
-        source.buffer = audioBuffer;
-        const sp = audioCtx.createScriptProcessor(monoDataLength, 2, 2);
-
-        const gainNode = audioCtx.createGain();
-
-        source.connect(gainNode);
-        gainNode.connect(sp);
-        sp.connect(audioCtx.destination);
-
+      if (audioData) {
         setState(
           (oldState) => {
+            const audioCtx = getAudioCtx();
+
             const timeOffset = oldState.timeOffset || 0;
             const startTime = audioCtx.currentTime - timeOffset;
 
-            source.start(0, timeOffset);
+            audioData.source.start(0, timeOffset);
 
             return {
               ...oldState,
-              sp,
-              gainNode,
-              audioBuffer,
-              source,
               timeOffset,
               startTime,
             };
           },
         );
-
-        return () => {
-          source.disconnect(gainNode);
-          gainNode.disconnect(sp);
-          sp.disconnect(audioCtx.destination);
-        };
       }
     },
-    [trackData, current_player_state === PLAYER_STATE.PLAY, state.wasMoveByTimeOffset],
+    [audioData, trackData],
   );
 
   React.useEffect(
     () => {
-      if (current_player_state === PLAYER_STATE.PLAY) {
+      if (audioData) {
         const audioCtx = getAudioCtx();
 
         const intervalId = setInterval(
@@ -139,12 +160,12 @@ const PlayerControl: React.FC<{}> = () => {
         };
       }
     },
-    [current_player_state === PLAYER_STATE.PLAY],
+    [audioData],
   );
 
   React.useEffect(
     () => {
-      if (state.source) {
+      if (audioData?.source) {
         const handleEnded = () => {
           setState((oldState) => {
             const audioCtx = getAudioCtx();
@@ -168,14 +189,14 @@ const PlayerControl: React.FC<{}> = () => {
           });
         };
 
-        state.source.addEventListener('ended', handleEnded);
+        audioData.source.addEventListener('ended', handleEnded);
 
         return () => {
-          state.source.removeEventListener('ended', handleEnded);
+          audioData.source.removeEventListener('ended', handleEnded);
         };
       }
     },
-    [state.source, current_player_state],
+    [audioData?.source, current_player_state],
   );
 
   const handleChangeCurrentPosition = React.useCallback(
@@ -202,6 +223,11 @@ const PlayerControl: React.FC<{}> = () => {
   return (
     <div>
       <div>
+        <InputAudio
+          trackList={trackList}
+          handleAddTrack={handleAddTrack}
+          handleRemoveTrack={handleRemoveTrack}
+        />
         <div>
           <InputMultiply />
         </div>
@@ -211,18 +237,18 @@ const PlayerControl: React.FC<{}> = () => {
           />
         </div>
       </div>
-      <CanvasVisualizer sp={state.sp} monoDataLength={monoDataLength} />
+      <CanvasVisualizer sp={audioData?.sp} monoDataLength={monoDataLength} />
       <div>
-        <PlayerButtons souce={state.source} />
+        <PlayerButtons souce={audioData?.source} />
         <FlexContainer>
           <Progress
-            trackDuration={state.audioBuffer?.duration ?? 0}
+            trackDuration={trackData?.duration ?? 0}
             currentPosition={state.timeOffset || 0}
             handleChangeCurrentPosition={handleChangeCurrentPosition}
             wasMoveByTimeOffset={state.wasMoveByTimeOffset}
           />
           <InputVolume />
-          <TriggerVolume gainNode={state.gainNode} />
+          <TriggerVolume gainNode={audioData?.gainNode} />
         </FlexContainer>
       </div>
     </div>

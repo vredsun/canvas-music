@@ -16,9 +16,10 @@ const Container = styled.div`
   background-color: rgba(0, 0, 0, 0.25);
 `;
 
-const TextPlashkaContainer = styled.div`
+const TextPlashkaContainer = styled.div<{ isVisible: boolean }>`
   position: absolute;
-  top: 0;
+  top: 50%;
+  transform: translate(0, -50%) scale(1, ${({ isVisible }) => isVisible ? 1 : 0});
   left: 0;
   right: 0;
 
@@ -26,11 +27,13 @@ const TextPlashkaContainer = styled.div`
 
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   padding: 0.15rem 10px;
 
   color: white;
   pointer-events: none;
+
+  transition: transform 0.3s;
 `;
 
 const Status = styled.div<{ trackDuration: number; currentWidth: number }>`
@@ -105,7 +108,7 @@ const Progress: React.FC<Props> = React.memo(
           trackDuration={transitionDurection}
           currentWidth={currentWidth}
         />
-        <TextPlashkaContainer>
+        <TextPlashkaContainer isVisible={Boolean(props.trackDuration)}>
           <span>{secondsInMMSS(props.currentPosition)}</span>
           <span>{secondsInMMSS(props.trackDuration ?? 0)}</span>
         </TextPlashkaContainer>

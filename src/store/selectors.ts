@@ -9,8 +9,15 @@ export const selectStateOfPlay = (state: VsStoreContextValueState) => {
   return state.state_of_play;
 };
 
+export const selectStateOfPlayNoData = (state: VsStoreContextValueState) => {
+  return selectStateOfPlay(state) === PLAYER_STATE.NODATA;
+};
 export const selectStateOfPlayIsPrepare = (state: VsStoreContextValueState) => {
   return selectStateOfPlay(state) === PLAYER_STATE.PREPARE;
+};
+
+export const selectIsDisabledForPlay = (state: VsStoreContextValueState) => {
+  return selectStateOfPlayNoData(state) || selectStateOfPlayIsPrepare(state);
 };
 
 export const selectStateOfPlayIsStop = (state: VsStoreContextValueState) => {

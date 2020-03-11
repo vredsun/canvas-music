@@ -61,7 +61,7 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
             const sampleLen = inputBuffer.length;
 
             // для визулизации создаем монобуфер
-            const mono = (new Array(sampleLen)).fill(0);
+            let mono = null;
 
             for (let channel = 0; channel < channelsLen; channel++ ) {
               const inputData = inputBuffer.getChannelData(channel);
@@ -71,6 +71,7 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
               outputData.set(inputData);
 
               if (i % ping === 0) {
+                mono = mono || (new Array(sampleLen)).fill(0);
                 // микшируем в монобуфер все каналы
                 for (let sample = 0; sample < sampleLen; sample++ ) {
                   mono[sample] = (mono[sample] + inputData[sample]) / 2;

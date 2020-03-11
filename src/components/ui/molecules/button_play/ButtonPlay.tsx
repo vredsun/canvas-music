@@ -4,14 +4,13 @@ import { useDispatch, useSelector } from 'vs-react-store';
 import Button from 'components/ui/atoms/button/Button';
 import { changeStateOfPlay } from 'store/actions';
 import { PLAYER_STATE } from 'constants/play_state';
-import { selectStateOfPlay, selectStateOfPlayIsPrepare } from 'store/selectors';
+import { selectStateOfPlay, selectIsDisabledForPlay } from 'store/selectors';
 
 type Props = {};
 
 const ButtonPlay: React.FC<Props> = React.memo(
   (props) => {
-    const isPrepare = useSelector(selectStateOfPlayIsPrepare);
-    const isDisabled = isPrepare;
+    const isDisabled = useSelector(selectIsDisabledForPlay);
     const current_player_state = useSelector(selectStateOfPlay);
 
     const dispatch = useDispatch();

@@ -3,4 +3,5 @@ export enum PLAYER_STATE {
   PAUSE = 'PAUSE',
   STOP = 'STOP',
   PREPARE = 'PREPARE',
+  NODATA = 'NODATA',
 }

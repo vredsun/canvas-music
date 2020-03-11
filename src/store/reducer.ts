@@ -26,7 +26,7 @@ export type VsStoreContextValueState = {
 };
 
 const default_value: VsStoreContextValueState = {
-  state_of_play: PLAYER_STATE.PREPARE,
+  state_of_play: PLAYER_STATE.NODATA,
   volume: 0.5,
   multiply: 2,
   unionBlocks: 1,
