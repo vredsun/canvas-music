@@ -15,6 +15,7 @@ import TriggerVolume from 'components/ui/molecules/trigger_volume/TriggerVolume'
 import Progress from 'components/ui/molecules/progress/Progress';
 import PlayerButtons from 'components/ui/molecules/player_buttons/PlayerButtons';
 import { getAudioCtx } from 'global';
+import FlexContainer from 'components/ui/atoms/flex_container/FlexContainer';
 
 const cache: Record<string, AudioBuffer> = {};
 
@@ -29,7 +30,6 @@ const PlayerControl: React.FC<{}> = () => {
     audioBuffer: AudioBuffer;
     timeOffset: number;
     startTime: number;
-    intervalId: NodeJS.Timeout;
     wasMoveByTimeOffset: boolean;
   }>({
     sp: null,
@@ -38,7 +38,6 @@ const PlayerControl: React.FC<{}> = () => {
     audioBuffer: null,
     timeOffset: null,
     startTime: null,
-    intervalId: null,
     wasMoveByTimeOffset: false,
   });
 
@@ -90,23 +89,6 @@ const PlayerControl: React.FC<{}> = () => {
 
             source.start(0, timeOffset);
 
-            const intervalId = setInterval(
-              () => {
-                setState(
-                  (oldStateInterval) => {
-                    const timeOffsetNew = (audioCtx.currentTime - oldStateInterval.startTime);
-
-                    return {
-                      ...oldStateInterval,
-                      timeOffset: timeOffsetNew,
-                      wasMoveByTimeOffset: false,
-                    };
-                  },
-                );
-              },
-              100,
-            );
-
             return {
               ...oldState,
               sp,
@@ -115,62 +97,74 @@ const PlayerControl: React.FC<{}> = () => {
               source,
               timeOffset,
               startTime,
-              intervalId,
             };
           },
         );
+
+        return () => {
+          source.disconnect(gainNode);
+          gainNode.disconnect(sp);
+          sp.disconnect(audioCtx.destination);
+        };
       }
     },
-    [trackData, current_player_state === PLAYER_STATE.PLAY],
+    [trackData, current_player_state === PLAYER_STATE.PLAY, state.wasMoveByTimeOffset],
   );
 
   React.useEffect(
     () => {
-      if (state.sp && current_player_state === PLAYER_STATE.PLAY) {
-        return () => {
-          const audioCtx = getAudioCtx();
+      if (current_player_state === PLAYER_STATE.PLAY) {
+        const audioCtx = getAudioCtx();
 
-          try {
-            state.source.disconnect(state.gainNode);
-            state.gainNode.disconnect(state.sp);
-            state.sp.disconnect(audioCtx.destination);
-          } catch {
-            //
-          }
+        const intervalId = setInterval(
+          () => {
+            setState(
+              (oldStateInterval) => {
+                const timeOffsetNew = (audioCtx.currentTime - oldStateInterval.startTime);
+
+                return {
+                  ...oldStateInterval,
+                  timeOffset: timeOffsetNew,
+                  wasMoveByTimeOffset: false,
+                };
+              },
+            );
+          },
+          100,
+        );
+
+        return () => {
+          clearInterval(intervalId);
         };
       }
     },
-    [state.sp, current_player_state === PLAYER_STATE.PLAY],
+    [current_player_state === PLAYER_STATE.PLAY],
   );
 
   React.useEffect(
     () => {
       if (state.source) {
         const handleEnded = () => {
-          if (state.intervalId) {
-            clearInterval(state.intervalId);
+          setState((oldState) => {
+            const audioCtx = getAudioCtx();
+            let timeOffset = 0;
 
-            setState((oldState) => {
-              const audioCtx = getAudioCtx();
-              let timeOffset = 0;
+            if (current_player_state === PLAYER_STATE.PAUSE) {
+              timeOffset = (audioCtx.currentTime - oldState.startTime);
+            }
 
-              if (current_player_state === PLAYER_STATE.PAUSE) {
-                timeOffset = (audioCtx.currentTime - oldState.startTime);
-              }
+            if (current_player_state === PLAYER_STATE.PLAY) {
+              dispatch(changeStateOfPlay(PLAYER_STATE.STOP));
+            }
 
-              if (current_player_state === PLAYER_STATE.PLAY) {
-                dispatch(changeStateOfPlay(PLAYER_STATE.STOP));
-              }
-
-              return {
-                ...oldState,
-                intervalId: null,
-                lastTimeStart: 0,
-                timeOffset,
-                wasMoveByTimeOffset: true,
-              };
-            });
-          }
+            return {
+              ...oldState,
+              intervalId: null,
+              lastTimeStart: 0,
+              timeOffset,
+              wasMoveByTimeOffset: true,
+            };
+          });
         };
 
         state.source.addEventListener('ended', handleEnded);
@@ -185,10 +179,8 @@ const PlayerControl: React.FC<{}> = () => {
 
   const handleChangeCurrentPosition = React.useCallback(
     (newTimeOffset) => {
-      // handleClickPause();
       setState((oldState) => {
         const audioCtx = getAudioCtx();
-        dispatch(changeStateOfPlay(PLAYER_STATE.PAUSE));
 
         const timeOffset = newTimeOffset;
         const startTime = audioCtx.currentTime - timeOffset;
@@ -200,16 +192,6 @@ const PlayerControl: React.FC<{}> = () => {
           wasMoveByTimeOffset: true,
         };
       });
-
-      setTimeout(
-        () => {
-          if (current_player_state === PLAYER_STATE.PLAY) {
-            dispatch(changeStateOfPlay(PLAYER_STATE.PLAY));
-          }
-        },
-        100,
-      );
-
     },
     [
       current_player_state,
@@ -218,28 +200,30 @@ const PlayerControl: React.FC<{}> = () => {
 
   return (
     <div>
-      <PlayerButtons souce={state.source} />
       <div>
-        <InputVolume />
-        <TriggerVolume gainNode={state.gainNode} />
-      </div>
-      <div>
-        <InputMultiply />
-      </div>
-      <div>
-        <InputUnionBlock
-          monoDataLength={monoDataLength}
-        />
-      </div>
-      <div>
-        <Progress
-          trackDuration={state.audioBuffer?.duration ?? 0}
-          currentPosition={state.timeOffset || 0}
-          handleChangeCurrentPosition={handleChangeCurrentPosition}
-          wasMoveByTimeOffset={state.wasMoveByTimeOffset}
-        />
+        <div>
+          <InputMultiply />
+        </div>
+        <div>
+          <InputUnionBlock
+            monoDataLength={monoDataLength}
+          />
+        </div>
       </div>
       <CanvasVisualizer sp={state.sp} monoDataLength={monoDataLength} />
+      <div>
+        <PlayerButtons souce={state.source} />
+        <FlexContainer>
+          <Progress
+            trackDuration={state.audioBuffer?.duration ?? 0}
+            currentPosition={state.timeOffset || 0}
+            handleChangeCurrentPosition={handleChangeCurrentPosition}
+            wasMoveByTimeOffset={state.wasMoveByTimeOffset}
+          />
+          <InputVolume />
+          <TriggerVolume gainNode={state.gainNode} />
+        </FlexContainer>
+      </div>
     </div>
   );
 };

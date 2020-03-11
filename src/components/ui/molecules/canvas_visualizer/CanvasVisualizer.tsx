@@ -126,6 +126,7 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
             direction = (direction + 1) % 2;
           }
           const newIndex = direction ? props.monoDataLength - 1 - rawNewIndex : rawNewIndex;
+          lastSumm += initMonoData[newIndex];
 
           if ((i + 1) % countByOne === 0) {
             currentValue = lastSumm / countByOne;
@@ -142,7 +143,6 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
               }
             }
           }
-          lastSumm += initMonoData[newIndex];
         }
         ctx.closePath();
 

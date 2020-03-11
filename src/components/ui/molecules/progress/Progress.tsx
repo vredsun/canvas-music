@@ -85,13 +85,13 @@ const Progress: React.FC<Props> = React.memo(
           setCurrentWidth(getWidthByData(maxWidth, props.trackDuration, props.currentPosition));
         }
       },
-      [props.wasMoveByTimeOffset],
+      [props.wasMoveByTimeOffset, props.currentPosition],
     );
 
     const handleClick = React.useCallback(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         const maxWidth = refContainer.current.clientWidth;
-        const percentOfTrack = (event.screenX - (event.target as HTMLDivElement).getBoundingClientRect().left) / maxWidth;
+        const percentOfTrack = (event.screenX - event.currentTarget.getBoundingClientRect().left) / maxWidth;
         const newTrackPosition = props.trackDuration * percentOfTrack;
 
         props.handleChangeCurrentPosition(newTrackPosition);

@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'vs-react-store';
 
 import { selectVolume } from 'components/store/selectors';
 import { changeVolume } from 'components/store/actions';
+import VerticalRange from 'components/ui/atoms/vertical_range/VerticalRange';
 
 type Props = {};
 
@@ -11,18 +12,22 @@ const InputVolume: React.FC<Props> = React.memo(
     const volume = useSelector(selectVolume);
     const dispatch = useDispatch();
 
-    const handleChangeVolume = React.useCallback(
-      (event: any) => {
-        dispatch(changeVolume(Number(event?.target?.value ?? event)));
+    const handleChange = React.useCallback(
+      (newVolume: number) => {
+        dispatch(changeVolume(newVolume));
       },
       [],
     );
 
     return (
       <label>
-        Громкость
-        <input type="range" min="0" max="1" step="0.01" onChange={handleChangeVolume} value={volume} />
-        ({ volume * 100 }%)
+        <VerticalRange
+          value={volume}
+          min={0}
+          max={1}
+          step={0.01}
+          onChange={handleChange}
+        />
       </label>
     );
   },
