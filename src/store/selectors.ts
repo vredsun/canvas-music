@@ -1,4 +1,4 @@
-import { VsStoreContextValueState } from 'components/store/reducer';
+import { VsStoreContextValueState } from 'store/reducer';
 import { PLAYER_STATE } from 'constants/play_state';
 
 export const selectVolume = (state: VsStoreContextValueState) => {
@@ -23,4 +23,12 @@ export const selectMultiply = (state: VsStoreContextValueState) => {
 
 export const selectUnionBlocks = (state: VsStoreContextValueState) => {
   return state.unionBlocks;
+};
+
+export const selectAllBytes = (state: VsStoreContextValueState) => {
+  return state.all_bytes;
+};
+
+export const selectLoaded = (state: VsStoreContextValueState) => {
+  return state.loaded_bytes;
 };

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useSelector } from 'vs-react-store';
 
-import { selectVolume } from 'components/store/selectors';
+import { selectVolume } from 'store/selectors';
 
 type Props = {
   gainNode: GainNode;

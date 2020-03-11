@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { PLAYER_STATE } from 'constants/play_state';
-import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay } from 'components/store/selectors';
+import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay } from 'store/selectors';
 import { useSelector } from 'vs-react-store';
+import { getInitMonoData } from 'utils/init_state';
 
 const canvasH = 512;
 const canvasW = canvasH;
@@ -36,7 +37,7 @@ type Props = {
 
 const CanvasVisualizer: React.FC<Props> = React.memo(
   (props) => {
-    const [monoData, setMonoData] = React.useState((new Array(props.monoDataLength)).fill(0));
+    const [monoData, setMonoData] = React.useState(getInitMonoData(props.monoDataLength));
 
     const ref = React.useRef<HTMLCanvasElement>();
 
@@ -88,6 +89,10 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
           return () => {
             props.sp.removeEventListener('audioprocess', audioprocessCallback);
           };
+        }
+
+        if (current_player_state === PLAYER_STATE.STOP) {
+          setMonoData(getInitMonoData(props.monoDataLength));
         }
       },
       [props.sp, current_player_state],

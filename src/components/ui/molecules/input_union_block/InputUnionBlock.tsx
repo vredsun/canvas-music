@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { useSelector, useDispatch } from 'vs-react-store';
 
-import { selectUnionBlocks } from 'components/store/selectors';
-import { changeUnionBlocks } from 'components/store/actions';
+import { selectUnionBlocks } from 'store/selectors';
+import { changeUnionBlocks } from 'store/actions';
 import InputSelect from 'components/ui/atoms/input_select/InputSelect';
 
 type Props = {

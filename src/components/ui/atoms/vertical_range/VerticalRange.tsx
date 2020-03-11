@@ -41,6 +41,7 @@ const Container = styled.div`
   width: 30px;
   position: relative;
   padding: 0 5px;
+  cursor: pointer;
 
   &:hover, &:focus, &:active {
     ${VerticalRangeBlockContainer} {

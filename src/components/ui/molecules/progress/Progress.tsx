@@ -2,7 +2,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 import { useSelector } from 'vs-react-store';
 
-import { selectStateOfPlay } from 'components/store/selectors';
+import { selectStateOfPlay } from 'store/selectors';
 import { PLAYER_STATE } from 'constants/play_state';
 import { secondsInMMSS } from 'utils/time';
 

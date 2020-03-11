@@ -100,6 +100,7 @@ const Loading: React.FC<Props> = React.memo(
             <SpinCircleBackgroundSvg cx="25" cy="25" r="20" fill="none"></SpinCircleBackgroundSvg>
             <SpinCircleSvg cx="25" cy="25" r="20" fill="none"></SpinCircleSvg>
           </SpinSvg>
+          { props.children }
         </SpinSvgContainer>
       </SpinSvgContainerWrap>
     );

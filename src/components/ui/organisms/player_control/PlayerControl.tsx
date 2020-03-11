@@ -5,8 +5,8 @@ import { PLAYER_STATE } from 'constants/play_state';
 
 import NF_Change from 'music/NF_Change.mp3';
 import CanvasVisualizer from 'components/ui/molecules/canvas_visualizer/CanvasVisualizer';
-import { selectStateOfPlay } from 'components/store/selectors';
-import { changeStateOfPlay } from 'components/store/actions';
+import { selectStateOfPlay } from 'store/selectors';
+import { changeStateOfPlay, changeLoadedBytes } from 'store/actions';
 
 import InputUnionBlock from 'components/ui/molecules/input_union_block/InputUnionBlock';
 import InputMultiply from 'components/ui/molecules/input_multiply/InputMultiply';
@@ -16,6 +16,7 @@ import Progress from 'components/ui/molecules/progress/Progress';
 import PlayerButtons from 'components/ui/molecules/player_buttons/PlayerButtons';
 import { getAudioCtx } from 'global';
 import FlexContainer from 'components/ui/atoms/flex_container/FlexContainer';
+import loadTrack from 'utils/load_track';
 
 const cache: Record<string, AudioBuffer> = {};
 
@@ -49,14 +50,14 @@ const PlayerControl: React.FC<{}> = () => {
     () => {
       setImmediate(
         async () => {
-          const audioCtx = getAudioCtx();
-
           let trackDecode = cache[NF_Change];
-
           if (!trackDecode) {
-            trackDecode = cache[NF_Change] = await fetch(NF_Change)
-              .then((response) => response.arrayBuffer())
-              .then((arrayBuffer) => audioCtx.decodeAudioData(arrayBuffer));
+            trackDecode = cache[NF_Change] = await loadTrack(
+              NF_Change,
+              (event) => {
+                dispatch(changeLoadedBytes(event.loaded, event.total));
+              },
+            );
           }
 
           setTrackData(trackDecode);

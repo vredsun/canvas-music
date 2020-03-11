@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { useSelector, useDispatch } from 'vs-react-store';
 
-import { selectVolume } from 'components/store/selectors';
-import { changeVolume } from 'components/store/actions';
+import { selectVolume } from 'store/selectors';
+import { changeVolume } from 'store/actions';
 import VerticalRange from 'components/ui/atoms/vertical_range/VerticalRange';
 
 type Props = {};

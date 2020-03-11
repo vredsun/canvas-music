@@ -1,5 +1,18 @@
 import { createReducer } from 'vs-react-store';
-import { CHANGE_VOLUME, changeVolume, CHANGE_MULTIPLY, changeMultiply, CHANGE_UNION_BLOCKS, changeUnionBlocks, CHANGE_STATE_OF_PLAY, changeStateOfPlay } from 'components/store/actions';
+import {
+  CHANGE_VOLUME,
+  changeVolume,
+  CHANGE_MULTIPLY,
+  changeMultiply,
+  CHANGE_UNION_BLOCKS,
+  changeUnionBlocks,
+  CHANGE_STATE_OF_PLAY,
+  changeStateOfPlay,
+  CHANGE_ALL_BYTES,
+  changeAllBytes,
+  CHANGE_LOADED_BYTES,
+  changeLoadedBytes,
+} from 'store/actions';
 import { PLAYER_STATE } from 'constants/play_state';
 
 export type VsStoreContextValueState = {
@@ -7,6 +20,9 @@ export type VsStoreContextValueState = {
   volume: number;
   multiply: number;
   unionBlocks: number;
+
+  loaded_bytes: number;
+  all_bytes: number;
 };
 
 const default_value: VsStoreContextValueState = {
@@ -14,6 +30,8 @@ const default_value: VsStoreContextValueState = {
   volume: 0.5,
   multiply: 2,
   unionBlocks: 1,
+  loaded_bytes: 0,
+  all_bytes: 0,
 };
 
 const initStore = (): VsStoreContextValueState => {
@@ -21,6 +39,8 @@ const initStore = (): VsStoreContextValueState => {
 
   return {
     state_of_play: default_value.state_of_play,
+    loaded_bytes: default_value.loaded_bytes,
+    all_bytes: default_value.all_bytes,
 
     volume: userData.volume ?? default_value.volume,
     multiply: userData.multiply ?? default_value.multiply,
@@ -33,6 +53,20 @@ export const reducer = createReducer<VsStoreContextValueState>(
     return initStore();
   },
   {
+    [CHANGE_ALL_BYTES](state, { payload }: ReturnType<typeof changeAllBytes>) {
+      return {
+        ...state,
+        loaded_bytes: payload.loaded_bytes,
+        all_bytes: payload.all_bytes,
+      };
+    },
+    [CHANGE_LOADED_BYTES](state, { payload }: ReturnType<typeof changeLoadedBytes>) {
+      return {
+        ...state,
+        loaded_bytes: payload.loaded_bytes,
+        all_bytes: payload.all_bytes,
+      };
+    },
     [CHANGE_STATE_OF_PLAY](state, { payload }: ReturnType<typeof changeStateOfPlay>) {
       return {
         ...state,

@@ -2,9 +2,9 @@ import * as React from 'react';
 import { useDispatch, useSelector } from 'vs-react-store';
 
 import Button from 'components/ui/atoms/button/Button';
-import { changeStateOfPlay } from 'components/store/actions';
+import { changeStateOfPlay } from 'store/actions';
 import { PLAYER_STATE } from 'constants/play_state';
-import { selectStateOfPlayIsPrepare, selectStateOfPlayIsStop } from 'components/store/selectors';
+import { selectStateOfPlayIsPrepare, selectStateOfPlayIsStop } from 'store/selectors';
 
 type Props = {};
 
