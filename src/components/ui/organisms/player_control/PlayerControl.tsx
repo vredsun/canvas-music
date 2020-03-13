@@ -138,29 +138,31 @@ const PlayerControl: React.FC<{}> = () => {
       if (audioData) {
         const audioCtx = getAudioCtx();
 
-        const intervalId = setInterval(
-          () => {
-            setState(
-              (oldStateInterval) => {
-                const timeOffsetNew = (audioCtx.currentTime - oldStateInterval.startTime);
+        if (current_player_state === PLAYER_STATE.PLAY) {
+          const intervalId = setInterval(
+            () => {
+              setState(
+                (oldStateInterval) => {
+                  const timeOffsetNew = (audioCtx.currentTime - oldStateInterval.startTime);
 
-                return {
-                  ...oldStateInterval,
-                  timeOffset: timeOffsetNew,
-                  wasMoveByTimeOffset: false,
-                };
-              },
-            );
-          },
-          100,
-        );
+                  return {
+                    ...oldStateInterval,
+                    timeOffset: timeOffsetNew,
+                    wasMoveByTimeOffset: false,
+                  };
+                },
+              );
+            },
+            100,
+          );
 
-        return () => {
-          clearInterval(intervalId);
-        };
+          return () => {
+            clearInterval(intervalId);
+          };
+        }
       }
     },
-    [audioData],
+    [audioData, current_player_state],
   );
 
   React.useEffect(

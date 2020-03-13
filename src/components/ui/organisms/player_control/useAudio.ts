@@ -41,7 +41,7 @@ const useAudio = (audioBuffer: AudioBuffer, monoDataLength: number, boolInit: bo
 
   React.useEffect(
     () => {
-      if (data?.source) {
+      if (data?.source && !data?.source?.buffer) {
         data.source.buffer = audioBuffer;
       }
     },
