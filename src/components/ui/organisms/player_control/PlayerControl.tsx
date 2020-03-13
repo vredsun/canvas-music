@@ -94,7 +94,7 @@ const PlayerControl: React.FC<{}> = () => {
             );
 
             setTrackData(trackDecode);
-            dispatch(changeStateOfPlay(PLAYER_STATE.STOP));
+            dispatch(changeStateOfPlay(PLAYER_STATE.PAUSE));
           }
         );
       }
@@ -176,7 +176,7 @@ const PlayerControl: React.FC<{}> = () => {
             }
 
             if (current_player_state === PLAYER_STATE.PLAY) {
-              dispatch(changeStateOfPlay(PLAYER_STATE.STOP));
+              dispatch(changeStateOfPlay(PLAYER_STATE.PAUSE));
             }
 
             return {

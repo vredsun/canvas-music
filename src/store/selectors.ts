@@ -20,10 +20,6 @@ export const selectIsDisabledForPlay = (state: VsStoreContextValueState) => {
   return selectStateOfPlayNoData(state) || selectStateOfPlayIsPrepare(state);
 };
 
-export const selectStateOfPlayIsStop = (state: VsStoreContextValueState) => {
-  return selectStateOfPlay(state) === PLAYER_STATE.STOP;
-};
-
 export const selectMultiply = (state: VsStoreContextValueState) => {
   return state.multiply;
 };
