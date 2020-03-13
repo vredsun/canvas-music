@@ -156,9 +156,7 @@ const PlayerControl: React.FC<{}> = () => {
             100,
           );
 
-          return () => {
-            clearInterval(intervalId);
-          };
+          return () => clearInterval(intervalId);
         }
       }
     },
