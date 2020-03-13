@@ -9,12 +9,12 @@ const canvasH = 512;
 const canvasW = canvasH;
 const canvasHh = Math.floor( canvasH / 2 );
 
-const getXValue = (index: number, countIndex: number, startAngle: number) => {
-  return Math.cos(startAngle + 2 * Math.PI / countIndex * index);
-};
-
 const getYValue = (index: number, countIndex: number, startAngle: number) => {
   return Math.sin(startAngle + 2 * Math.PI / countIndex * index);
+};
+
+const getXValue = (index: number, countIndex: number, startAngle: number) => {
+  return Math.cos(startAngle + 2 * Math.PI / countIndex * index);
 };
 
 const normalizeValueByRadius = (value: number, radius: number) => {
