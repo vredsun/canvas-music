@@ -237,7 +237,7 @@ const PlayerControl: React.FC<{}> = () => {
           />
         </div>
       </div>
-      <CanvasVisualizer sp={audioData?.sp} monoDataLength={monoDataLength} />
+      <CanvasVisualizer analyser={audioData?.analyser} monoDataLength={monoDataLength} />
       <div>
         <PlayerButtons souce={audioData?.source} />
         <FlexContainer>

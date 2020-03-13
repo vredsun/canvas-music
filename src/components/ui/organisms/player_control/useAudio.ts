@@ -11,16 +11,16 @@ const useAudio = (audioBuffer: AudioBuffer, monoDataLength: number, boolInit: bo
 
         const source = audioCtx.createBufferSource();
         const gainNode = audioCtx.createGain();
-        const sp = audioCtx.createScriptProcessor(monoDataLength, 2, 2);
+        const analyser = audioCtx.createAnalyser();
 
         source.connect(gainNode);
-        gainNode.connect(sp);
-        sp.connect(audioCtx.destination);
+        gainNode.connect(analyser);
+        analyser.connect(audioCtx.destination);
 
         setData({
           source,
           gainNode,
-          sp,
+          analyser
         });
 
         return () => {
@@ -28,8 +28,8 @@ const useAudio = (audioBuffer: AudioBuffer, monoDataLength: number, boolInit: bo
 
           try {
             source.disconnect(gainNode);
-            gainNode.disconnect(sp);
-            sp.disconnect(audioCtx.destination);
+            gainNode.disconnect(analyser);
+            analyser.disconnect(audioCtx.destination);
           } catch {
             //
           }
