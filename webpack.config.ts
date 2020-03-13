@@ -146,17 +146,6 @@ const config: webpack.Configuration = {
           },
         ],
       },
-      {
-        test: /\.(png|jpe?g|gif|svg)$/,
-        use: [
-          {
-            loader: 'url-loader',
-            options: {
-              limit: 1000000,
-            },
-          },
-        ],
-      },
     ],
   },
   plugins: getPlugins(),
