@@ -8,23 +8,14 @@ type Props = {
 
 const Img = styled.img`
   width: 2rem;
-  cursor: pointer;
 `;
 
 const ImgLink: React.FC<Props> = React.memo(
   (props) => {
-    const handleClick = React.useCallback(
-      () => {
-        // history.pushState(props.path);
-      },
-      [props.path],
-    );
-
     return (
-      <a href={props.path}>
+      <a href={props.path} target="_blank">
         <Img
           src={props.src}
-          onClick={handleClick}
         />
       </a>
     );
