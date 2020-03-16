@@ -102,5 +102,13 @@
     "./src/**/*.{ts,tsx}": [
       "eslint --config ./.eslintrc.js --ext .ts,.tsx --fix --quiet"
     ]
+  },
+  "release-it": {
+    "npm": {
+      "publish": false
+    },
+    "github": {
+      "release": true
+    }
   }
 }
