@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { useSelector, useDispatch } from 'vs-react-store';
+import { isNull } from 'util';
+import groupBy from 'lodash-es/groupBy';
 
 import { PLAYER_STATE } from 'constants/play_state';
 
@@ -16,10 +18,9 @@ import PlayerButtons from 'components/ui/molecules/player_buttons/PlayerButtons'
 import { getAudioCtx } from 'global';
 import FlexContainer from 'components/ui/atoms/flex_container/FlexContainer';
 import loadTrack from 'utils/load_track';
-import { isNull } from 'util';
-import groupBy from 'lodash-es/groupBy';
-import useAudio from 'components/ui/organisms/player_control/useAudio';
+import useAudio from 'components/ui/pages/player_control/useAudio';
 import TrackListControl from 'components/ui/organisms/track_list_control';
+import InputFading from 'components/ui/molecules/input_fading/InputFading';
 
 const PlayerControl: React.FC<{}> = () => {
   const [currentTrackPlayIndex, setCurrentTrackPlayIndex] = React.useState<number>(null);
@@ -265,6 +266,9 @@ const PlayerControl: React.FC<{}> = () => {
           <InputUnionBlock
             monoDataLength={monoDataLength}
           />
+        </div>
+        <div>
+          <InputFading />
         </div>
       </div>
       <CanvasVisualizer analyser={audioData?.analyser} monoDataLength={monoDataLength} />

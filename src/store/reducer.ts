@@ -12,6 +12,8 @@ import {
   changeAllBytes,
   CHANGE_LOADED_BYTES,
   changeLoadedBytes,
+  CHANGE_IS_FADING,
+  changeIsFading,
 } from 'store/actions';
 import { PLAYER_STATE } from 'constants/play_state';
 
@@ -23,6 +25,7 @@ export type VsStoreContextValueState = {
 
   loaded_bytes: number;
   all_bytes: number;
+  isFading: boolean;
 };
 
 const default_value: VsStoreContextValueState = {
@@ -32,6 +35,7 @@ const default_value: VsStoreContextValueState = {
   unionBlocks: 1,
   loaded_bytes: 0,
   all_bytes: 0,
+  isFading: false,
 };
 
 const initStore = (): VsStoreContextValueState => {
@@ -45,6 +49,7 @@ const initStore = (): VsStoreContextValueState => {
     volume: userData.volume ?? default_value.volume,
     multiply: userData.multiply ?? default_value.multiply,
     unionBlocks: userData.unionBlocks ?? default_value.unionBlocks,
+    isFading: userData.isFading ?? default_value.isFading,
   };
 };
 
@@ -89,6 +94,12 @@ export const reducer = createReducer<VsStoreContextValueState>(
       return {
         ...state,
         unionBlocks: payload.unionBlocks,
+      };
+    },
+    [CHANGE_IS_FADING](state, { payload }: ReturnType<typeof changeIsFading>) {
+      return {
+        ...state,
+        isFading: payload.isFading,
       };
     },
   },
