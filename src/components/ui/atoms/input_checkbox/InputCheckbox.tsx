@@ -19,6 +19,10 @@ type Props<T = any> = {
 
 const space = 0.2;
 
+const Label = styled.label`
+  display: flex;
+`;
+
 const Container = styled.div<{ isChecked: boolean; sizeKey: keyof typeof Size; isDisabled: boolean }>`
   cursor: ${({ isDisabled }) => !isDisabled ? 'pointer' : 'not-allowed'};
   opacity: ${({ isDisabled }) => !isDisabled ? 1 : 0.5};
@@ -26,9 +30,9 @@ const Container = styled.div<{ isChecked: boolean; sizeKey: keyof typeof Size; i
   width: ${({ sizeKey }) => Size[sizeKey]}rem;
   height: ${({ sizeKey }) => Size[sizeKey] / 2}rem;
 
-  border-radius: ${({ sizeKey }) =>Size[sizeKey] / 2 / 2}rem;
+  border-radius: ${({ sizeKey }) => Size[sizeKey] / 2 / 2}rem;
 
-  background-color: ${({ isChecked }) => !isChecked ? '#5588ff' : '#aaa'};
+  background-color: ${({ isChecked }) => isChecked ? '#5588ff' : '#aaa'};
   transition: background-color 0.25s ease-in-out, opacity 0.25 ease-in-out;
 
   &::after {
@@ -63,7 +67,7 @@ const InputCheckbox: React.FC<Props> = React.memo(
       [props.onChange, props.isChecked, props.isDisabled],
     );
     return (
-      <label>
+      <Label>
         {props.label}
         <Container
           sizeKey={props.size ?? 'medium'}
@@ -71,7 +75,7 @@ const InputCheckbox: React.FC<Props> = React.memo(
           onClick={handleClick}
           isDisabled={props.isDisabled}
         />
-      </label>
+      </Label>
     );
   },
 );

@@ -3,7 +3,7 @@ import { isNull } from 'util';
 import { useSelector } from 'vs-react-store';
 
 import { PLAYER_STATE } from 'constants/play_state';
-import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay } from 'store/selectors';
+import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay, selectIsFading } from 'store/selectors';
 
 const canvasH = 512;
 const canvasW = canvasH;
@@ -22,16 +22,13 @@ const normalizeValueByRadius = (value: number, radius: number) => {
 };
 
 const getFuncGetCoordByLineData = (getCoorValue: (index: number, countIndex: number, startAngle: number) => number) => (radius: number, index: number, countIndex: number, value: number, startAngle: number) => {
-  if (value > 256) {
-    console.info('value more 256', value);
-  }
   return radius + getCoorValue(index, countIndex, startAngle) * normalizeValueByRadius(value, radius);
 };
 
 const getXByLineData = getFuncGetCoordByLineData(getXValue);
 const getYByLineData = getFuncGetCoordByLineData(getYValue);
 
-const drawCircle = (ctx: CanvasRenderingContext2D, monoDataLength: number, initMonoData: Array<number> | Uint8Array, multiply: number, unionBlocks: number) => {
+const drawCircle = (ctx: CanvasRenderingContext2D, monoDataLength: number, initMonoData: Array<number> | Uint8Array, multiply: number, unionBlocks: number, isFading: boolean) => {
   const allItems = monoDataLength * (multiply * 2);
   const countByOne = 2 ** unionBlocks;
 
@@ -81,6 +78,24 @@ type Props = {
   monoDataLength: number;
 };
 
+const getValue = (min: number, max: number, oldValue: number, newValue: number) => {
+  if (newValue !== oldValue) {
+    const mediana = (max + min) / 2;
+
+    const diffValue = (newValue - oldValue);
+    const diffValueAbs = Math.abs(diffValue);
+    const diffValueSign = diffValue / diffValueAbs;
+
+    const speed = Math.floor(diffValueAbs / 256 * 100) * 5 / 100 + 1;
+
+    const diff = Math.max(mediana - oldValue, Math.abs((diffValue) / (2 ** (2 * speed)))) * diffValueSign;
+
+    return oldValue + diff;
+  }
+
+  return newValue;
+};
+
 const CanvasVisualizer: React.FC<Props> = React.memo(
   (props) => {
     const ref = React.useRef<HTMLCanvasElement>();
@@ -88,28 +103,33 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
     const volume = useSelector(selectVolume);
     const multiply = useSelector(selectMultiply);
     const unionBlocks = useSelector(selectUnionBlocks);
+    const isFading = useSelector(selectIsFading);
 
     const current_player_state = useSelector(selectStateOfPlay);
 
     React.useEffect(
       () => {
+
         if (props.analyser && current_player_state === PLAYER_STATE.PLAY) {
           props.analyser.fftSize = props.monoDataLength * 2;
-          var bufferLength = props.analyser.frequencyBinCount;
-          var dataArray = new Uint8Array(bufferLength);
+          const bufferLength = props.analyser.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
           props.analyser.getByteTimeDomainData(dataArray);
 
           let animationId = null;
+          let dataArrayPrev: Array<number> = (new Array(256)).fill(128);
 
           const draw = () => {
             animationId = requestAnimationFrame(draw);
 
             props.analyser.getByteTimeDomainData(dataArray);
+            let newArray = dataArrayPrev.map((value, index) => isFading ? getValue(0, 256, value, dataArray[index]) : dataArray[index]);
+            dataArrayPrev = newArray;
 
             const canvas = ref.current;
             const ctx = canvas.getContext('2d');
 
-            drawCircle(ctx, props.monoDataLength, dataArray, multiply, unionBlocks);
+            drawCircle(ctx, props.monoDataLength, newArray, multiply, unionBlocks, isFading);
           };
 
           draw();
@@ -120,14 +140,45 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
             }
           };
         } else {
-          const canvas = ref.current;
-          const ctx = canvas.getContext('2d');
-          const initMonoData: Array<number> = Array(props.monoDataLength).fill(128);
+          let animationId = null;
+          let dataArrayPrev: Array<number> = (new Array(256)).fill(128);
 
-          drawCircle(ctx, props.monoDataLength, initMonoData, multiply, unionBlocks);
+          const draw = () => {
+            animationId = requestAnimationFrame(draw);
+
+            const dataArray: Array<number> = Array(props.monoDataLength).fill(128);
+
+            let newArray = dataArrayPrev.map((value, index) => isFading ? getValue(0, 256, value, dataArray[index]) : dataArray[index]);
+            dataArrayPrev = newArray;
+
+            const canvas = ref.current;
+            const ctx = canvas.getContext('2d');
+
+            drawCircle(ctx, props.monoDataLength, newArray, multiply, unionBlocks, isFading);
+
+            if (newArray.every((value) => value === 128)) {
+              cancelAnimationFrame(animationId);
+            }
+          };
+
+          draw();
+
+          return () => {
+            if (!isNull(animationId)) {
+              cancelAnimationFrame(animationId);
+            }
+          };
         }
       },
-      [props.analyser, current_player_state, canvasW, volume, multiply, unionBlocks],
+      [
+        props.analyser,
+        current_player_state,
+        canvasW,
+        volume,
+        multiply,
+        unionBlocks,
+        isFading,
+      ],
     );
 
     return <canvas width={canvasW} height={canvasH} ref={ref} />;

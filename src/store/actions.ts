@@ -6,6 +6,7 @@ export const CHANGE_MULTIPLY = 'CHANGE_MULTIPLY';
 export const CHANGE_UNION_BLOCKS = 'CHANGE_UNION_BLOCKS';
 export const CHANGE_ALL_BYTES = 'CHANGE_ALL_BYTES';
 export const CHANGE_LOADED_BYTES = 'CHANGE_LOADED_BYTES';
+export const CHANGE_IS_FADING = 'CHANGE_IS_FADING';
 
 export const changeStateOfPlay = (state_of_play: VsStoreContextValueState['state_of_play']) => ({
   type: CHANGE_STATE_OF_PLAY,
@@ -32,6 +33,13 @@ export const changeUnionBlocks = (unionBlocks: VsStoreContextValueState['unionBl
   type: CHANGE_UNION_BLOCKS,
   payload: {
     unionBlocks,
+  },
+});
+
+export const changeIsFading = (isFading: VsStoreContextValueState['isFading']) => ({
+  type: CHANGE_IS_FADING,
+  payload: {
+    isFading,
   },
 });
 

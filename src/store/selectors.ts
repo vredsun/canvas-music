@@ -35,3 +35,8 @@ export const selectAllBytes = (state: VsStoreContextValueState) => {
 export const selectLoaded = (state: VsStoreContextValueState) => {
   return state.loaded_bytes;
 };
+
+export const selectIsFading = (state: VsStoreContextValueState) => {
+  return state.isFading;
+};
+
