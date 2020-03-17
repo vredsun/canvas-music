@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { getAudioCtx } from 'global';
 
-const useAudio = (audioBuffer: AudioBuffer, monoDataLength: number, boolInit: boolean, ...dependency: Array<any>) => {
+const useAudio = (audioBuffer: AudioBuffer, boolInit: boolean, ...dependency: Array<any>) => {
   const [data, setData] = React.useState(null);
 
   React.useEffect(
@@ -33,6 +33,8 @@ const useAudio = (audioBuffer: AudioBuffer, monoDataLength: number, boolInit: bo
           } catch {
             //
           }
+
+          setData(null);
         };
       }
     },

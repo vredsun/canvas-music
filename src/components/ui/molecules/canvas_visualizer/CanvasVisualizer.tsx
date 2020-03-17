@@ -31,6 +31,51 @@ const getFuncGetCoordByLineData = (getCoorValue: (index: number, countIndex: num
 const getXByLineData = getFuncGetCoordByLineData(getXValue);
 const getYByLineData = getFuncGetCoordByLineData(getYValue);
 
+const drawCircle = (ctx: CanvasRenderingContext2D, monoDataLength: number, initMonoData: Array<number> | Uint8Array, multiply: number, unionBlocks: number) => {
+  const allItems = monoDataLength * (multiply * 2);
+  const countByOne = 2 ** unionBlocks;
+
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 2;
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, canvasW, canvasH);
+
+  ctx.beginPath();
+
+  let currentValue = 0;
+  let lastSumm = 0;
+
+  let direction = 1;
+
+  for (let i = 0; i < allItems; i += 1) {
+    const rawNewIndex = i % monoDataLength;
+    if (rawNewIndex === 0) {
+      direction = (direction + 1) % 2;
+    }
+    const newIndex = direction ? monoDataLength - 1 - rawNewIndex : rawNewIndex;
+    lastSumm += initMonoData[newIndex];
+
+    if ((i + 1) % countByOne === 0) {
+      currentValue = lastSumm / countByOne;
+      lastSumm = 0;
+
+      for (let j = i - countByOne; j < i; j ++) {
+        const x = getXByLineData(canvasHh, j, allItems, currentValue, 0);
+        const y = getYByLineData(canvasHh, j, allItems, currentValue, 0);
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+    }
+  }
+
+  ctx.closePath();
+  ctx.stroke();
+};
+
 type Props = {
   analyser: AnalyserNode;
   monoDataLength: number;
@@ -64,50 +109,7 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
             const canvas = ref.current;
             const ctx = canvas.getContext('2d');
 
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 2;
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, canvasW, canvasH);
-
-            ctx.beginPath();
-
-            let currentValue = 0;
-            let lastSumm = 0;
-            let countByOne = 2 ** unionBlocks;
-
-            const initMonoData = dataArray;
-
-            const allItems = props.monoDataLength * (multiply * 2);
-
-            let direction = 1;
-
-            for (let i = 0; i < allItems; i += 1) {
-              const rawNewIndex = i % props.monoDataLength;
-              if (rawNewIndex === 0) {
-                direction = (direction + 1) % 2;
-              }
-              const newIndex = direction ? props.monoDataLength - 1 - rawNewIndex : rawNewIndex;
-              lastSumm += initMonoData[newIndex];
-
-              if ((i + 1) % countByOne === 0) {
-                currentValue = lastSumm / countByOne;
-                lastSumm = 0;
-
-                for (let j = i - countByOne; j < i; j ++) {
-                  const x = getXByLineData(canvasHh, j, allItems, currentValue, 0);
-                  const y = getYByLineData(canvasHh, j, allItems, currentValue, 0);
-
-                  if (i === 0) {
-                    ctx.moveTo(x, y);
-                  } else {
-                    ctx.lineTo(x, y);
-                  }
-                }
-              }
-            }
-            ctx.closePath();
-
-            ctx.stroke();
+            drawCircle(ctx, props.monoDataLength, dataArray, multiply, unionBlocks);
           };
 
           draw();
@@ -117,6 +119,12 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
               cancelAnimationFrame(animationId);
             }
           };
+        } else {
+          const canvas = ref.current;
+          const ctx = canvas.getContext('2d');
+          const initMonoData: Array<number> = Array(props.monoDataLength).fill(128);
+
+          drawCircle(ctx, props.monoDataLength, initMonoData, multiply, unionBlocks);
         }
       },
       [props.analyser, current_player_state, canvasW, volume, multiply, unionBlocks],
