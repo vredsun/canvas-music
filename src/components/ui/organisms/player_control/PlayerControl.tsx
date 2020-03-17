@@ -16,13 +16,13 @@ import PlayerButtons from 'components/ui/molecules/player_buttons/PlayerButtons'
 import { getAudioCtx } from 'global';
 import FlexContainer from 'components/ui/atoms/flex_container/FlexContainer';
 import loadTrack from 'utils/load_track';
-import InputAudio from 'components/ui/atoms/input_audio/InputAudio';
 import { isNull } from 'util';
 import groupBy from 'lodash-es/groupBy';
 import useAudio from 'components/ui/organisms/player_control/useAudio';
+import TrackListControl from 'components/ui/organisms/track_list_control';
 
 const PlayerControl: React.FC<{}> = () => {
-  const [currentTrackPlayIndex, setCurrentTrackPlayIndex] = React.useState(null);
+  const [currentTrackPlayIndex, setCurrentTrackPlayIndex] = React.useState<number>(null);
   const [trackList, setTrackList] = React.useState<Array<File>>([]);
 
   const [trackData, setTrackData] = React.useState<AudioBuffer>();
@@ -78,8 +78,9 @@ const PlayerControl: React.FC<{}> = () => {
 
   React.useEffect(
     () => {
-      if (!isNull(currentTrackPlayIndex)) {
-        const track = trackList[currentTrackPlayIndex];
+      const track = trackList[currentTrackPlayIndex];
+
+      if (track) {
         const trackUrl = window.URL.createObjectURL(track);
 
         dispatch(changeStateOfPlay(PLAYER_STATE.PREPARE));
@@ -95,23 +96,34 @@ const PlayerControl: React.FC<{}> = () => {
 
             setTrackData(trackDecode);
             dispatch(changeStateOfPlay(PLAYER_STATE.PAUSE));
+            setState((oldState) => ({
+              ...oldState,
+              startTime: 0,
+              timeOffset: 0,
+              wasMoveByTimeOffset: true,
+            }));
           }
         );
+      } else {
+        setTrackData(null);
+
+        dispatch(changeStateOfPlay(PLAYER_STATE.NODATA));
       }
+
     },
-    [currentTrackPlayIndex, trackList],
+    [trackList?.[currentTrackPlayIndex]],
   );
 
   const audioData = useAudio(
     trackData,
-    monoDataLength,
-    current_player_state === PLAYER_STATE.PLAY,
+    current_player_state === PLAYER_STATE.PLAY && !isNull(currentTrackPlayIndex),
     state.wasMoveByTimeOffset,
+    currentTrackPlayIndex,
   );
 
   React.useEffect(
     () => {
-      if (audioData) {
+      if (audioData && trackData) {
         setState(
           (oldState) => {
             const audioCtx = getAudioCtx();
@@ -156,11 +168,27 @@ const PlayerControl: React.FC<{}> = () => {
             100,
           );
 
-          return () => clearInterval(intervalId);
+          return () => {
+            clearInterval(intervalId);
+          };
         }
       }
     },
     [audioData, current_player_state],
+  );
+
+  React.useEffect(
+    () => {
+      if (current_player_state === PLAYER_STATE.NODATA) {
+        setState((oldState) => ({
+          ...oldState,
+          startTime: 0,
+          timeOffset: 0,
+          wasMoveByTimeOffset: true,
+        }));
+      }
+    },
+    [current_player_state === PLAYER_STATE.NODATA],
   );
 
   React.useEffect(
@@ -223,10 +251,12 @@ const PlayerControl: React.FC<{}> = () => {
   return (
     <div>
       <div>
-        <InputAudio
+        <TrackListControl
+          activeTrackIndex={currentTrackPlayIndex}
           trackList={trackList}
           handleAddTrack={handleAddTrack}
           handleRemoveTrack={handleRemoveTrack}
+          setActivetrackIndex={setCurrentTrackPlayIndex}
         />
         <div>
           <InputMultiply />

@@ -10,6 +10,8 @@ const GithubLink: React.FC<Props> = React.memo(
     return (
       <ImgLink
         src={GithubImg}
+        title="link to git"
+        alt="git logo"
         path="https://github.com/vredsun/canvas-music"
       />
     );
