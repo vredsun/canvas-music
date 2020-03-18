@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useSelector, useDispatch } from 'vs-react-store';
-import { isNull } from 'util';
+import { isNull, isNullOrUndefined } from 'util';
 import groupBy from 'lodash-es/groupBy';
 
 import { PLAYER_STATE } from 'constants/play_state';
@@ -23,6 +23,7 @@ import TrackListControl from 'components/ui/organisms/track_list_control';
 import InputFading from 'components/ui/molecules/input_fading/InputFading';
 import InputStateOfLoop from 'components/ui/molecules/input_state_of_loop/InputStateOfLoop';
 import { LOOP_STATE } from 'constants/play_loop';
+import useKeyboardEvents from 'components/ui/pages/player_control/useKeyboardEvents';
 
 const PlayerControl: React.FC<{}> = () => {
   const [currentTrackPlayIndex, setCurrentTrackPlayIndex] = React.useState<number>(null);
@@ -119,11 +120,49 @@ const PlayerControl: React.FC<{}> = () => {
     [trackList?.[currentTrackPlayIndex]],
   );
 
+  const setNextTrackIndex = React.useCallback(
+    () => {
+      setCurrentTrackPlayIndex((oldStateIndex) => (
+        !isNullOrUndefined(oldStateIndex)
+          ? (oldStateIndex + 1) % trackList.length
+          : oldStateIndex
+      ));
+    },
+    [trackList.length],
+  );
+
+  const setPrevTrackIndex = React.useCallback(
+    () => {
+      setCurrentTrackPlayIndex((oldStateIndex) => (
+        !isNullOrUndefined(oldStateIndex)
+          ? (trackList.length + oldStateIndex - 1) % trackList.length
+          : oldStateIndex
+      ));
+    },
+    [trackList.length],
+  );
+
+  const removeActiveTrack = React.useCallback(
+    () => {
+      const track = trackList?.[currentTrackPlayIndex];
+      if (track) {
+        handleRemoveTrack(track);
+      }
+    },
+    [currentTrackPlayIndex, trackList, handleRemoveTrack],
+  );
+
   const audioData = useAudio(
     trackData,
     current_player_state === PLAYER_STATE.PLAY && !isNull(currentTrackPlayIndex),
     state.wasMoveByTimeOffset,
     currentTrackPlayIndex,
+  );
+
+  useKeyboardEvents(
+    setNextTrackIndex,
+    setPrevTrackIndex,
+    removeActiveTrack,
   );
 
   React.useEffect(
