@@ -5,6 +5,10 @@ export const selectVolume = (state: VsStoreContextValueState) => {
   return state.volume;
 };
 
+export const selectStateOfLoop = (state: VsStoreContextValueState) => {
+  return state.state_of_loop;
+};
+
 export const selectStateOfPlay = (state: VsStoreContextValueState) => {
   return state.state_of_play;
 };

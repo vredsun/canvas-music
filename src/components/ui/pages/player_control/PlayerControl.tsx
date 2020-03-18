@@ -6,7 +6,7 @@ import groupBy from 'lodash-es/groupBy';
 import { PLAYER_STATE } from 'constants/play_state';
 
 import CanvasVisualizer from 'components/ui/molecules/canvas_visualizer/CanvasVisualizer';
-import { selectStateOfPlay } from 'store/selectors';
+import { selectStateOfPlay, selectStateOfLoop } from 'store/selectors';
 import { changeStateOfPlay, changeLoadedBytes } from 'store/actions';
 
 import InputUnionBlock from 'components/ui/molecules/input_union_block/InputUnionBlock';
@@ -21,6 +21,8 @@ import loadTrack from 'utils/load_track';
 import useAudio from 'components/ui/pages/player_control/useAudio';
 import TrackListControl from 'components/ui/organisms/track_list_control';
 import InputFading from 'components/ui/molecules/input_fading/InputFading';
+import InputStateOfLoop from 'components/ui/molecules/input_state_of_loop/InputStateOfLoop';
+import { LOOP_STATE } from 'constants/play_loop';
 
 const PlayerControl: React.FC<{}> = () => {
   const [currentTrackPlayIndex, setCurrentTrackPlayIndex] = React.useState<number>(null);
@@ -39,6 +41,7 @@ const PlayerControl: React.FC<{}> = () => {
     wasMoveByTimeOffset: false,
   });
 
+  const state_of_loop = useSelector(selectStateOfLoop);
   const current_player_state = useSelector(selectStateOfPlay);
 
   const dispatch = useDispatch();
@@ -96,7 +99,8 @@ const PlayerControl: React.FC<{}> = () => {
             );
 
             setTrackData(trackDecode);
-            dispatch(changeStateOfPlay(PLAYER_STATE.PAUSE));
+            dispatch(changeStateOfPlay(PLAYER_STATE.PLAY));
+
             setState((oldState) => ({
               ...oldState,
               startTime: 0,
@@ -208,6 +212,16 @@ const PlayerControl: React.FC<{}> = () => {
               dispatch(changeStateOfPlay(PLAYER_STATE.PAUSE));
             }
 
+            if (state_of_loop === LOOP_STATE.ONE_LOOP) {
+              dispatch(changeStateOfPlay(PLAYER_STATE.PLAY));
+            }
+            if (state_of_loop === LOOP_STATE.ALL_LOOP) {
+              dispatch(changeStateOfPlay(PLAYER_STATE.PLAY));
+              setCurrentTrackPlayIndex((oldStateIndex) => (
+                (oldStateIndex + 1) % trackList.length
+              ));
+            }
+
             return {
               ...oldState,
               intervalId: null,
@@ -225,7 +239,7 @@ const PlayerControl: React.FC<{}> = () => {
         };
       }
     },
-    [audioData?.source, current_player_state],
+    [audioData?.source, current_player_state, state_of_loop, trackList?.length],
   );
 
   const handleChangeCurrentPosition = React.useCallback(
@@ -283,6 +297,7 @@ const PlayerControl: React.FC<{}> = () => {
           />
           <InputVolume />
           <TriggerVolume gainNode={audioData?.gainNode} />
+          <InputStateOfLoop />
         </FlexContainer>
       </div>
     </div>

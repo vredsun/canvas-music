@@ -7,6 +7,7 @@ export const CHANGE_UNION_BLOCKS = 'CHANGE_UNION_BLOCKS';
 export const CHANGE_ALL_BYTES = 'CHANGE_ALL_BYTES';
 export const CHANGE_LOADED_BYTES = 'CHANGE_LOADED_BYTES';
 export const CHANGE_IS_FADING = 'CHANGE_IS_FADING';
+export const CHANGE_STATE_OF_LOOP = 'CHANGE_STATE_OF_LOOP';
 
 export const changeStateOfPlay = (state_of_play: VsStoreContextValueState['state_of_play']) => ({
   type: CHANGE_STATE_OF_PLAY,
@@ -59,3 +60,9 @@ export const changeLoadedBytes = (loaded_bytes: VsStoreContextValueState['loaded
   },
 });
 
+export const changeStateOfLoop = (state_of_loop: VsStoreContextValueState['state_of_loop']) => ({
+  type: CHANGE_STATE_OF_LOOP,
+  payload: {
+    state_of_loop,
+  },
+});

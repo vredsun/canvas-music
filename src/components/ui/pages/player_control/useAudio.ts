@@ -2,7 +2,7 @@ import * as React from 'react';
 import { getAudioCtx } from 'global';
 
 const useAudio = (audioBuffer: AudioBuffer, boolInit: boolean, ...dependency: Array<any>) => {
-  const [data, setData] = React.useState(null);
+  const [data, setData] = React.useState<{ source: AudioBufferSourceNode; analyser: AnalyserNode; gainNode: GainNode }>(null);
 
   React.useEffect(
     () => {

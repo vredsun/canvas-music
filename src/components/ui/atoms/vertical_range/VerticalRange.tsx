@@ -46,7 +46,6 @@ const Container = styled.div`
   &:hover, &:focus, &:active {
     ${VerticalRangeBlockContainer} {
       transform: translate(0, -100%) scale(1, 1);
-
     }
   }
 

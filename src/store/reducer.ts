@@ -14,10 +14,14 @@ import {
   changeLoadedBytes,
   CHANGE_IS_FADING,
   changeIsFading,
+  CHANGE_STATE_OF_LOOP,
+  changeStateOfLoop,
 } from 'store/actions';
 import { PLAYER_STATE } from 'constants/play_state';
+import { LOOP_STATE } from 'constants/play_loop';
 
 export type VsStoreContextValueState = {
+  state_of_loop: LOOP_STATE;
   state_of_play: PLAYER_STATE;
   volume: number;
   multiply: number;
@@ -29,6 +33,7 @@ export type VsStoreContextValueState = {
 };
 
 const default_value: VsStoreContextValueState = {
+  state_of_loop: LOOP_STATE.ALL_LOOP,
   state_of_play: PLAYER_STATE.NODATA,
   volume: 0.5,
   multiply: 2,
@@ -39,17 +44,18 @@ const default_value: VsStoreContextValueState = {
 };
 
 const initStore = (): VsStoreContextValueState => {
-  const userData: Partial<VsStoreContextValueState> = JSON.parse(localStorage.getItem('userData')) || {};
+  const userData: Partial<VsStoreContextValueState> = JSON.parse(localStorage.getItem('userData'));
 
   return {
     state_of_play: default_value.state_of_play,
     loaded_bytes: default_value.loaded_bytes,
     all_bytes: default_value.all_bytes,
 
-    volume: userData.volume ?? default_value.volume,
-    multiply: userData.multiply ?? default_value.multiply,
-    unionBlocks: userData.unionBlocks ?? default_value.unionBlocks,
-    isFading: userData.isFading ?? default_value.isFading,
+    state_of_loop: userData?.state_of_loop ?? default_value.state_of_loop,
+    volume: userData?.volume ?? default_value.volume,
+    multiply: userData?.multiply ?? default_value.multiply,
+    unionBlocks: userData?.unionBlocks ?? default_value.unionBlocks,
+    isFading: userData?.isFading ?? default_value.isFading,
   };
 };
 
@@ -58,6 +64,12 @@ export const reducer = createReducer<VsStoreContextValueState>(
     return initStore();
   },
   {
+    [CHANGE_STATE_OF_LOOP](state, { payload }: ReturnType<typeof changeStateOfLoop>) {
+      return {
+        ...state,
+        state_of_loop: payload.state_of_loop,
+      };
+    },
     [CHANGE_ALL_BYTES](state, { payload }: ReturnType<typeof changeAllBytes>) {
       return {
         ...state,
