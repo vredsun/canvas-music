@@ -10,12 +10,12 @@ const useAudio = (audioBuffer: AudioBuffer, boolInit: boolean, ...dependency: Ar
         const audioCtx = getAudioCtx();
 
         const source = audioCtx.createBufferSource();
-        const gainNode = audioCtx.createGain();
         const analyser = audioCtx.createAnalyser();
+        const gainNode = audioCtx.createGain();
 
-        source.connect(gainNode);
-        gainNode.connect(analyser);
-        analyser.connect(audioCtx.destination);
+        source.connect(analyser);
+        analyser.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
 
         setData({
           source,
@@ -27,9 +27,9 @@ const useAudio = (audioBuffer: AudioBuffer, boolInit: boolean, ...dependency: Ar
           const audioCtx = getAudioCtx();
 
           try {
-            source.disconnect(gainNode);
-            gainNode.disconnect(analyser);
-            analyser.disconnect(audioCtx.destination);
+            source.disconnect(analyser);
+            analyser.disconnect(gainNode);
+            gainNode.disconnect(audioCtx.destination);
           } catch {
             //
           }
