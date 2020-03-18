@@ -5,6 +5,13 @@ export const selectVolume = (state: VsStoreContextValueState) => {
   return state.volume;
 };
 
+export const selectLastCursorTime = (state: VsStoreContextValueState) => {
+  return state.last_cursor_time;
+};
+export const selectStartTime = (state: VsStoreContextValueState) => {
+  return state.start_time;
+};
+
 export const selectStateOfLoop = (state: VsStoreContextValueState) => {
   return state.state_of_loop;
 };

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useSelector, useDispatch } from 'vs-react-store';
 import { selectStateOfPlay } from 'store/selectors';
 import { PLAYER_STATE } from 'constants/play_state';
-import { changeStateOfPlay } from 'store/actions';
+import { changeStateOfPlayOnPause, changeStateOfPlayOnPlay } from 'store/actions';
 
 enum KEY_CODE {
   PREV_TRACK = 'KeyK',
@@ -35,11 +35,11 @@ const useKeyboardEvents = (
 
         if (code === KEY_CODE.PLAY_PAUSE) {
           if (current_player_state === PLAYER_STATE.PAUSE) {
-            dispatch(changeStateOfPlay(PLAYER_STATE.PLAY));
+            dispatch(changeStateOfPlayOnPlay());
           }
 
           if (current_player_state === PLAYER_STATE.PLAY) {
-            dispatch(changeStateOfPlay(PLAYER_STATE.PAUSE));
+            dispatch(changeStateOfPlayOnPause());
           }
         }
 

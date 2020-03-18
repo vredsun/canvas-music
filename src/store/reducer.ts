@@ -16,11 +16,17 @@ import {
   changeIsFading,
   CHANGE_STATE_OF_LOOP,
   changeStateOfLoop,
+  CHANGE_START_TIME,
+  changeStartTime,
+  CHANGE_LAST_CURSOR_TIME,
+  changeLastCursorTime,
 } from 'store/actions';
 import { PLAYER_STATE } from 'constants/play_state';
 import { LOOP_STATE } from 'constants/play_loop';
 
 export type VsStoreContextValueState = {
+  start_time: number;
+  last_cursor_time: number;
   state_of_loop: LOOP_STATE;
   state_of_play: PLAYER_STATE;
   volume: number;
@@ -33,6 +39,8 @@ export type VsStoreContextValueState = {
 };
 
 const default_value: VsStoreContextValueState = {
+  start_time: 0,
+  last_cursor_time: 0,
   state_of_loop: LOOP_STATE.ALL_LOOP,
   state_of_play: PLAYER_STATE.NODATA,
   volume: 0.5,
@@ -47,6 +55,8 @@ const initStore = (): VsStoreContextValueState => {
   const userData: Partial<VsStoreContextValueState> = JSON.parse(localStorage.getItem('userData'));
 
   return {
+    start_time: default_value.start_time,
+    last_cursor_time: default_value.last_cursor_time,
     state_of_play: default_value.state_of_play,
     loaded_bytes: default_value.loaded_bytes,
     all_bytes: default_value.all_bytes,
@@ -64,6 +74,18 @@ export const reducer = createReducer<VsStoreContextValueState>(
     return initStore();
   },
   {
+    [CHANGE_LAST_CURSOR_TIME](state, { payload }: ReturnType<typeof changeLastCursorTime>) {
+      return {
+        ...state,
+        last_cursor_time: payload.last_cursor_time,
+      };
+    },
+    [CHANGE_START_TIME](state, { payload }: ReturnType<typeof changeStartTime>) {
+      return {
+        ...state,
+        start_time: payload.start_time,
+      };
+    },
     [CHANGE_STATE_OF_LOOP](state, { payload }: ReturnType<typeof changeStateOfLoop>) {
       return {
         ...state,

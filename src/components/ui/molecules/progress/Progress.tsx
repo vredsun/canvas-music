@@ -2,9 +2,10 @@ import * as React from 'react';
 import styled from 'styled-components';
 import { useSelector } from 'vs-react-store';
 
-import { selectStateOfPlay } from 'store/selectors';
+import { selectStateOfPlay, selectLastCursorTime, selectStartTime } from 'store/selectors';
 import { PLAYER_STATE } from 'constants/play_state';
 import { secondsInMMSS } from 'utils/time';
+import { getAudioCtx } from 'global';
 
 const Container = styled.div`
   position: relative;
@@ -36,59 +37,75 @@ const TextPlashkaContainer = styled.div<{ isVisible: boolean }>`
   transition: transform 0.3s;
 `;
 
-const Status = styled.div<{ trackDuration: number; currentWidth: number }>`
+const Status = styled.div`
   height: 100%;
-  width: ${({ currentWidth }) => currentWidth}px;
+  width: 0px;
 
   background-color: #5588ff;
-
-  transition: width ${({ trackDuration }) => trackDuration}s linear;
 `;
 
 type Props = {
   trackDuration: number;
-  currentPosition: number;
-  wasMoveByTimeOffset: boolean;
 
   handleChangeCurrentPosition: (newCurrentPosition: number) => void;
 };
 
-const getWidthByData = (maxWidth: number, maxValue: number, value: number) => {
-  return maxValue ? maxWidth * value / maxValue : 0;
+const setWidthAndTime = (maxWidth: number, trackDuration: number, start_time: number, status: HTMLDivElement, offset: HTMLSpanElement) => {
+  const audioCtx = getAudioCtx();
+
+  const diff = audioCtx.currentTime - start_time;
+
+  const newWidth = `${Math.round((diff / trackDuration) * maxWidth)}px`;
+  const curWidth = status.style.width;
+  if (newWidth !== curWidth) {
+    status.style.width = newWidth;
+  }
+
+  const newTime = secondsInMMSS(diff);
+  const curTime = offset.innerText;
+
+  if (newTime !== curTime) {
+    offset.innerText = newTime;
+  }
 };
 
 const Progress: React.FC<Props> = React.memo(
   (props) => {
+    const refCurrentTime = React.useRef<HTMLSpanElement>();
+    const refStatus = React.useRef<HTMLDivElement>();
     const refContainer = React.useRef<HTMLDivElement>();
 
-    const [transitionDurection, setTransitionDurection] = React.useState(0);
-    const [currentWidth, setCurrentWidth] = React.useState(0);
-
     const current_player_state = useSelector(selectStateOfPlay);
+    const start_time = useSelector(selectStartTime);
+    const last_cursor_time = useSelector(selectLastCursorTime);
 
     React.useEffect(
       () => {
-        if (!props.wasMoveByTimeOffset) {
-          const maxWidth = refContainer.current.clientWidth;
+        let animationId = null;
 
-          if (current_player_state === PLAYER_STATE.PLAY && props.trackDuration) {
-            setTransitionDurection(props.trackDuration - props.currentPosition);
-            setCurrentWidth(maxWidth);
+        const changeStatusWidth = () => {
+          if (current_player_state === PLAYER_STATE.PLAY) {
+            animationId = requestAnimationFrame(changeStatusWidth);
           }
-        }
-      },
-      [current_player_state, props.wasMoveByTimeOffset, props.trackDuration],
-    );
 
-    React.useEffect(
-      () => {
-        if (props.wasMoveByTimeOffset) {
-          const maxWidth = refContainer.current.clientWidth;
-          setTransitionDurection(0);
-          setCurrentWidth(getWidthByData(maxWidth, props.trackDuration, props.currentPosition));
-        }
+          setWidthAndTime(
+            refContainer.current.clientWidth,
+            props.trackDuration,
+            start_time,
+            refStatus.current,
+            refCurrentTime.current,
+          );
+        };
+
+        changeStatusWidth();
+
+        return () => {
+          if (animationId) {
+            cancelAnimationFrame(animationId);
+          }
+        };
       },
-      [props.wasMoveByTimeOffset, props.currentPosition],
+      [current_player_state, start_time, last_cursor_time],
     );
 
     const handleClick = React.useCallback(
@@ -104,12 +121,9 @@ const Progress: React.FC<Props> = React.memo(
 
     return (
       <Container ref={refContainer} onClick={handleClick}>
-        <Status
-          trackDuration={transitionDurection}
-          currentWidth={currentWidth}
-        />
+        <Status ref={refStatus} />
         <TextPlashkaContainer isVisible={Boolean(props.trackDuration)}>
-          <span>{secondsInMMSS(props.currentPosition)}</span>
+          <span ref={refCurrentTime}>{secondsInMMSS(0)}</span>
           <span>{secondsInMMSS(props.trackDuration ?? 0)}</span>
         </TextPlashkaContainer>
       </Container>

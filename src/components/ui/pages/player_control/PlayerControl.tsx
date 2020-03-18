@@ -6,8 +6,8 @@ import groupBy from 'lodash-es/groupBy';
 import { PLAYER_STATE } from 'constants/play_state';
 
 import CanvasVisualizer from 'components/ui/molecules/canvas_visualizer/CanvasVisualizer';
-import { selectStateOfPlay, selectStateOfLoop } from 'store/selectors';
-import { changeStateOfPlay, changeLoadedBytes } from 'store/actions';
+import { selectStateOfPlay, selectStateOfLoop, selectLastCursorTime, selectStartTime } from 'store/selectors';
+import { changeLoadedBytes, changeStateOfPlayOnPause, changeStateOfPlayOnPlay, changeStateOfPlayOnPrepare, changeStateOfPlayOnNodata, changeStartTime, changeLastCursorTime } from 'store/actions';
 
 import InputUnionBlock from 'components/ui/molecules/input_union_block/InputUnionBlock';
 import InputMultiply from 'components/ui/molecules/input_multiply/InputMultiply';
@@ -32,15 +32,9 @@ const PlayerControl: React.FC<{}> = () => {
   const [trackData, setTrackData] = React.useState<AudioBuffer>();
 
   const [monoDataLength] = React.useState(256);
-  const [state, setState] = React.useState<{
-    timeOffset: number;
-    startTime: number;
-    wasMoveByTimeOffset: boolean;
-  }>({
-    timeOffset: null,
-    startTime: null,
-    wasMoveByTimeOffset: false,
-  });
+
+  const last_cursor_time = useSelector(selectLastCursorTime);
+  const start_time = useSelector(selectStartTime);
 
   const state_of_loop = useSelector(selectStateOfLoop);
   const current_player_state = useSelector(selectStateOfPlay);
@@ -88,7 +82,7 @@ const PlayerControl: React.FC<{}> = () => {
       if (track) {
         const trackUrl = window.URL.createObjectURL(track);
 
-        dispatch(changeStateOfPlay(PLAYER_STATE.PREPARE));
+        dispatch(changeStateOfPlayOnPrepare());
 
         setImmediate(
           async () => {
@@ -100,20 +94,15 @@ const PlayerControl: React.FC<{}> = () => {
             );
 
             setTrackData(trackDecode);
-            dispatch(changeStateOfPlay(PLAYER_STATE.PLAY));
-
-            setState((oldState) => ({
-              ...oldState,
-              startTime: 0,
-              timeOffset: 0,
-              wasMoveByTimeOffset: true,
-            }));
+            dispatch(changeStateOfPlayOnPlay());
+            dispatch(changeStartTime(0));
+            dispatch(changeLastCursorTime(0));
           }
         );
       } else {
         setTrackData(null);
 
-        dispatch(changeStateOfPlay(PLAYER_STATE.NODATA));
+        dispatch(changeStateOfPlayOnNodata());
       }
 
     },
@@ -155,7 +144,7 @@ const PlayerControl: React.FC<{}> = () => {
   const audioData = useAudio(
     trackData,
     current_player_state === PLAYER_STATE.PLAY && !isNull(currentTrackPlayIndex),
-    state.wasMoveByTimeOffset,
+    last_cursor_time,
     currentTrackPlayIndex,
   );
 
@@ -168,22 +157,13 @@ const PlayerControl: React.FC<{}> = () => {
   React.useEffect(
     () => {
       if (audioData && trackData) {
-        setState(
-          (oldState) => {
-            const audioCtx = getAudioCtx();
+        const audioCtx = getAudioCtx();
 
-            const timeOffset = oldState.timeOffset || 0;
-            const startTime = audioCtx.currentTime - timeOffset;
+        const start_time_new = audioCtx.currentTime - last_cursor_time;
 
-            audioData.source.start(0, timeOffset);
+        audioData.source.start(0, last_cursor_time);
 
-            return {
-              ...oldState,
-              timeOffset,
-              startTime,
-            };
-          },
-        );
+        dispatch(changeStartTime(start_time_new));
       }
     },
     [audioData, trackData],
@@ -191,45 +171,9 @@ const PlayerControl: React.FC<{}> = () => {
 
   React.useEffect(
     () => {
-      if (audioData) {
-        const audioCtx = getAudioCtx();
-
-        if (current_player_state === PLAYER_STATE.PLAY) {
-          const intervalId = setInterval(
-            () => {
-              setState(
-                (oldStateInterval) => {
-                  const timeOffsetNew = (audioCtx.currentTime - oldStateInterval.startTime);
-
-                  return {
-                    ...oldStateInterval,
-                    timeOffset: timeOffsetNew,
-                    wasMoveByTimeOffset: false,
-                  };
-                },
-              );
-            },
-            100,
-          );
-
-          return () => {
-            clearInterval(intervalId);
-          };
-        }
-      }
-    },
-    [audioData, current_player_state],
-  );
-
-  React.useEffect(
-    () => {
       if (current_player_state === PLAYER_STATE.NODATA) {
-        setState((oldState) => ({
-          ...oldState,
-          startTime: 0,
-          timeOffset: 0,
-          wasMoveByTimeOffset: true,
-        }));
+        dispatch(changeStartTime(0));
+        dispatch(changeLastCursorTime(0));
       }
     },
     [current_player_state === PLAYER_STATE.NODATA],
@@ -239,36 +183,34 @@ const PlayerControl: React.FC<{}> = () => {
     () => {
       if (audioData?.source) {
         const handleEnded = () => {
-          setState((oldState) => {
-            const audioCtx = getAudioCtx();
-            let timeOffset = 0;
+          const audioCtx = getAudioCtx();
 
-            if (current_player_state === PLAYER_STATE.PAUSE) {
-              timeOffset = (audioCtx.currentTime - oldState.startTime);
+          if (current_player_state === PLAYER_STATE.PAUSE) {
+            if (state_of_loop === LOOP_STATE.NO_LOOP) {
+              dispatch(changeStartTime(0));
+              dispatch(changeLastCursorTime(0));
+            } else {
+              dispatch(changeLastCursorTime(audioCtx.currentTime - start_time));
             }
+          }
 
-            if (current_player_state === PLAYER_STATE.PLAY) {
-              dispatch(changeStateOfPlay(PLAYER_STATE.PAUSE));
-            }
+          if (current_player_state === PLAYER_STATE.PLAY) {
+            dispatch(changeStartTime(0));
+            dispatch(changeLastCursorTime(0));
+            dispatch(changeStateOfPlayOnPause());
+          }
 
-            if (state_of_loop === LOOP_STATE.ONE_LOOP) {
-              dispatch(changeStateOfPlay(PLAYER_STATE.PLAY));
-            }
-            if (state_of_loop === LOOP_STATE.ALL_LOOP) {
-              dispatch(changeStateOfPlay(PLAYER_STATE.PLAY));
-              setCurrentTrackPlayIndex((oldStateIndex) => (
-                (oldStateIndex + 1) % trackList.length
-              ));
-            }
-
-            return {
-              ...oldState,
-              intervalId: null,
-              lastTimeStart: 0,
-              timeOffset,
-              wasMoveByTimeOffset: true,
-            };
-          });
+          if (state_of_loop === LOOP_STATE.ONE_LOOP) {
+            dispatch(changeStartTime(0));
+            dispatch(changeLastCursorTime(0));
+            dispatch(changeStateOfPlayOnPlay());
+          }
+          if (state_of_loop === LOOP_STATE.ALL_LOOP) {
+            dispatch(changeStartTime(0));
+            dispatch(changeLastCursorTime(0));
+            setNextTrackIndex();
+            dispatch(changeStateOfPlayOnPlay());
+          }
         };
 
         audioData.source.addEventListener('ended', handleEnded);
@@ -278,24 +220,17 @@ const PlayerControl: React.FC<{}> = () => {
         };
       }
     },
-    [audioData?.source, current_player_state, state_of_loop, trackList?.length],
+    [audioData?.source, current_player_state, setNextTrackIndex, state_of_loop, trackList?.length, trackData, start_time],
   );
 
   const handleChangeCurrentPosition = React.useCallback(
-    (newTimeOffset) => {
-      setState((oldState) => {
-        const audioCtx = getAudioCtx();
+    (last_cursor_time_new) => {
+      const audioCtx = getAudioCtx();
 
-        const timeOffset = newTimeOffset;
-        const startTime = audioCtx.currentTime - timeOffset;
+      const start_time_new = audioCtx.currentTime - last_cursor_time_new;
 
-        return {
-          ...oldState,
-          startTime,
-          timeOffset,
-          wasMoveByTimeOffset: true,
-        };
-      });
+      dispatch(changeLastCursorTime(last_cursor_time_new));
+      dispatch(changeStartTime(start_time_new));
     },
     [
       current_player_state,
@@ -330,9 +265,7 @@ const PlayerControl: React.FC<{}> = () => {
         <FlexContainer>
           <Progress
             trackDuration={trackData?.duration ?? 0}
-            currentPosition={state.timeOffset || 0}
             handleChangeCurrentPosition={handleChangeCurrentPosition}
-            wasMoveByTimeOffset={state.wasMoveByTimeOffset}
           />
           <InputVolume />
           <TriggerVolume gainNode={audioData?.gainNode} />
