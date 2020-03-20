@@ -6,7 +6,7 @@ const getMinutesInSeconds = (seconds: number) => {
 };
 
 const getPartSeconds = (seconds: number) => {
-  return Math.round(seconds % ONE_MINUTE_IN_SECONDS);
+  return Math.floor(seconds % ONE_MINUTE_IN_SECONDS);
 };
 
 const setTimeZeroBeforeValue = (value: number) => {

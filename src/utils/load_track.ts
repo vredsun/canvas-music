@@ -1,6 +1,6 @@
 import { getAudioCtx } from 'global';
 
-const loadTrack = async (url: string, handleProgress: (event: ProgressEvent<EventTarget>) => void) => {
+const loadTrack = async (url: string, handleProgress: (event: ProgressEvent<EventTarget>) => void): Promise<AudioBuffer> => {
   return new Promise<AudioBuffer>(
     (res, rej) => {
       const xhr = new XMLHttpRequest();

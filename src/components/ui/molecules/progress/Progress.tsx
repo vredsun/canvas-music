@@ -1,11 +1,11 @@
 import * as React from 'react';
 import styled from 'styled-components';
-import { useSelector } from 'vs-react-store';
+import { useSelector, useDispatch } from 'vs-react-store';
 
-import { selectStateOfPlay, selectLastCursorTime, selectStartTime } from 'store/selectors';
+import { selectStateOfPlay, selectLastCursorTime, selectCurrentTrackTrackDataDuration } from 'store/selectors';
 import { PLAYER_STATE } from 'constants/play_state';
 import { secondsInMMSS } from 'utils/time';
-import { getAudioCtx } from 'global';
+import { changeLastCursorTime, changeStateOfPlay } from 'store/actions';
 
 const Container = styled.div`
   position: relative;
@@ -44,17 +44,9 @@ const Status = styled.div`
   background-color: #5588ff;
 `;
 
-type Props = {
-  trackDuration: number;
+type Props = {};
 
-  handleChangeCurrentPosition: (newCurrentPosition: number) => void;
-};
-
-const setWidthAndTime = (maxWidth: number, trackDuration: number, start_time: number, status: HTMLDivElement, offset: HTMLSpanElement) => {
-  const audioCtx = getAudioCtx();
-
-  const diff = audioCtx.currentTime - start_time;
-
+const setWidthAndTime = (maxWidth: number, trackDuration: number, diff: number, status: HTMLDivElement, offset: HTMLSpanElement) => {
   const newWidth = `${Math.round((diff / trackDuration) * maxWidth)}px`;
   const curWidth = status.style.width;
   if (newWidth !== curWidth) {
@@ -75,29 +67,32 @@ const Progress: React.FC<Props> = React.memo(
     const refStatus = React.useRef<HTMLDivElement>();
     const refContainer = React.useRef<HTMLDivElement>();
 
+    const dispatch = useDispatch();
+
     const current_player_state = useSelector(selectStateOfPlay);
-    const start_time = useSelector(selectStartTime);
     const last_cursor_time = useSelector(selectLastCursorTime);
+    const duration = useSelector(selectCurrentTrackTrackDataDuration);
 
     React.useEffect(
       () => {
         let animationId = null;
+        const time = performance.now();
 
-        const changeStatusWidth = () => {
+        const changeStatusWidth = (now: number) => {
           if (current_player_state === PLAYER_STATE.PLAY) {
             animationId = requestAnimationFrame(changeStatusWidth);
           }
 
           setWidthAndTime(
             refContainer.current.clientWidth,
-            props.trackDuration,
-            start_time,
+            duration,
+            (now - time) / 1000 + last_cursor_time,
             refStatus.current,
             refCurrentTime.current,
           );
         };
 
-        changeStatusWidth();
+        changeStatusWidth(time);
 
         return () => {
           if (animationId) {
@@ -105,26 +100,40 @@ const Progress: React.FC<Props> = React.memo(
           }
         };
       },
-      [current_player_state, start_time, last_cursor_time],
+      [current_player_state, last_cursor_time],
     );
 
     const handleClick = React.useCallback(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        const maxWidth = refContainer.current.clientWidth;
-        const percentOfTrack = (event.screenX - event.currentTarget.getBoundingClientRect().left) / maxWidth;
-        const newTrackPosition = props.trackDuration * percentOfTrack;
+        if (duration) {
+          const maxWidth = refContainer.current.clientWidth;
+          const percentOfTrack = (event.screenX - event.currentTarget.getBoundingClientRect().left) / maxWidth;
+          const last_cursor_time_new = duration * percentOfTrack;
 
-        props.handleChangeCurrentPosition(newTrackPosition);
+          const needToPlay = current_player_state === PLAYER_STATE.PLAY;
+
+          if (needToPlay) {
+            dispatch(changeStateOfPlay(PLAYER_STATE.PAUSE));
+          }
+          setImmediate(
+            () => {
+              dispatch(changeLastCursorTime(last_cursor_time_new));
+              if (needToPlay) {
+                dispatch(changeStateOfPlay(PLAYER_STATE.PLAY));
+              }
+            }
+          );
+        }
       },
-      [props.trackDuration, props.handleChangeCurrentPosition],
+      [duration, current_player_state],
     );
 
     return (
       <Container ref={refContainer} onClick={handleClick}>
         <Status ref={refStatus} />
-        <TextPlashkaContainer isVisible={Boolean(props.trackDuration)}>
+        <TextPlashkaContainer isVisible={Boolean(duration)}>
           <span ref={refCurrentTime}>{secondsInMMSS(0)}</span>
-          <span>{secondsInMMSS(props.trackDuration ?? 0)}</span>
+          <span>{secondsInMMSS(duration)}</span>
         </TextPlashkaContainer>
       </Container>
     );

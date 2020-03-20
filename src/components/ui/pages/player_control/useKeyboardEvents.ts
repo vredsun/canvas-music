@@ -1,8 +1,15 @@
 import * as React from 'react';
 import { useSelector, useDispatch } from 'vs-react-store';
-import { selectStateOfPlay } from 'store/selectors';
+
+import { selectStateOfPlay, selectActiveTrackIndex } from 'store/selectors';
 import { PLAYER_STATE } from 'constants/play_state';
-import { changeStateOfPlayOnPause, changeStateOfPlayOnPlay } from 'store/actions';
+import {
+  changeStateOfPlayOnPlay,
+  changeStateOfPlay,
+  changeActiveTrackIndexToPrevTrack,
+  changeActiveTrackIndexToNextTrack,
+  removeTrackFromTrackList,
+} from 'store/actions';
 
 enum KEY_CODE {
   PREV_TRACK = 'KeyK',
@@ -12,11 +19,8 @@ enum KEY_CODE {
   REMOVE_TRACK_TWO = 'Delete',
 }
 
-const useKeyboardEvents = (
-  setNextTrackIndex: () => void,
-  setPrevTrackIndex: () => void,
-  removeActiveTrack: () => void,
-) => {
+const useKeyboardEvents = () => {
+  const active_track_index = useSelector(selectActiveTrackIndex);
   const current_player_state = useSelector(selectStateOfPlay);
   const dispatch = useDispatch();
 
@@ -26,11 +30,15 @@ const useKeyboardEvents = (
         const code = event.code;
 
         if (code === KEY_CODE.NEXT_TRACK) {
-          setNextTrackIndex();
+          dispatch(
+            changeActiveTrackIndexToNextTrack()
+          );
         }
 
         if (code === KEY_CODE.PREV_TRACK) {
-          setPrevTrackIndex();
+          dispatch(
+            changeActiveTrackIndexToPrevTrack()
+          );
         }
 
         if (code === KEY_CODE.PLAY_PAUSE) {
@@ -39,12 +47,14 @@ const useKeyboardEvents = (
           }
 
           if (current_player_state === PLAYER_STATE.PLAY) {
-            dispatch(changeStateOfPlayOnPause());
+            dispatch(changeStateOfPlay(PLAYER_STATE.PAUSE));
           }
         }
 
         if (code === KEY_CODE.REMOVE_TRACK_ONE || code === KEY_CODE.REMOVE_TRACK_TWO) {
-          removeActiveTrack();
+          dispatch(
+            removeTrackFromTrackList(active_track_index),
+          );
         }
 
       };
@@ -55,10 +65,8 @@ const useKeyboardEvents = (
       };
     },
     [
-      setNextTrackIndex,
-      setPrevTrackIndex,
+      active_track_index,
       current_player_state,
-      removeActiveTrack,
     ],
   );
 };

@@ -1,10 +1,8 @@
 import * as React from 'react';
 import { getAudioCtx } from 'global';
 
-const useAudio = (audioBuffer: AudioBuffer, boolInit: boolean, ...dependency: Array<any>) => {
-  const [data, setData] = React.useState<{ source: AudioBufferSourceNode; analyser: AnalyserNode; gainNode: GainNode }>(null);
-
-  React.useEffect(
+const useAudio = (boolInit: boolean, ...dependency: Array<any>) => {
+  const data = React.useMemo(
     () => {
       if (boolInit) {
         const audioCtx = getAudioCtx();
@@ -17,37 +15,37 @@ const useAudio = (audioBuffer: AudioBuffer, boolInit: boolean, ...dependency: Ar
         analyser.connect(gainNode);
         gainNode.connect(audioCtx.destination);
 
-        setData({
+        return {
           source,
           gainNode,
           analyser
-        });
-
-        return () => {
-          const audioCtx = getAudioCtx();
-
-          try {
-            source.disconnect(analyser);
-            analyser.disconnect(gainNode);
-            gainNode.disconnect(audioCtx.destination);
-          } catch {
-            //
-          }
-
-          setData(null);
         };
       }
+
+      return null;
     },
     [boolInit, ...dependency],
   );
 
   React.useEffect(
     () => {
-      if (data?.source && !data?.source?.buffer) {
-        data.source.buffer = audioBuffer;
-      }
+      return () => {
+        const audioCtx = getAudioCtx();
+
+        try {
+          data.source.disconnect(data.analyser);
+          data.analyser.disconnect(data.gainNode);
+          data.gainNode.disconnect(audioCtx.destination);
+
+          if (data.source.buffer) {
+            data.source.stop();
+          }
+        } catch {
+          //
+        }
+      };
     },
-    [data?.source, audioBuffer],
+    [data],
   );
 
   return data;

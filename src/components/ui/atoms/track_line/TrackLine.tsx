@@ -8,7 +8,7 @@ import FlexContainer from 'components/ui/atoms/flex_container/FlexContainer';
 type Props = {
   isActive: boolean;
   index: number;
-  trackData: File;
+  trackData: { trackFile: File; trackAudioBuffer: AudioBuffer | null };
   handleRemoveTrack: (file: Props['trackData']) => void;
   setActiveIndex: (index: number) => void;
 };
@@ -29,8 +29,7 @@ const ReplaceFormatStrRegExp = new RegExp(/\.mp3/g);
 
 const prepareTrackName = (name: string) => {
   return capitalize(
-    name
-      .replace(ReplaceFormatStrRegExp, '')
+    name.replace(ReplaceFormatStrRegExp, '')
   );
 };
 
@@ -45,7 +44,8 @@ const TrackLine: React.FC<Props> = React.memo(
     );
 
     const handleClickRemove = React.useCallback(
-      () => {
+      (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        event.stopPropagation();
         props.handleRemoveTrack(props.trackData);
       },
       [props.handleRemoveTrack, props.trackData],
@@ -53,7 +53,7 @@ const TrackLine: React.FC<Props> = React.memo(
 
     return (
       <FlexContainerWrap justifyContent="space-between" onClick={handleClickLine} isActive={props.isActive}>
-        <span>{prepareTrackName(props.trackData.name)}</span>
+        <span>{prepareTrackName(props.trackData.trackFile.name)}</span>
         <button onClick={handleClickRemove}>remove</button>
       </FlexContainerWrap>
     );
