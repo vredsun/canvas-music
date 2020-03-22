@@ -96,6 +96,8 @@ const getValue = (min: number, max: number, oldValue: number, newValue: number) 
   return newValue;
 };
 
+let dataArrayPrev: Array<number> = (new Array(256)).fill(128);
+
 const CanvasVisualizer: React.FC<Props> = React.memo(
   (props) => {
     const ref = React.useRef<HTMLCanvasElement>();
@@ -109,7 +111,6 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
 
     React.useEffect(
       () => {
-
         if (props.analyser && current_player_state === PLAYER_STATE.PLAY) {
           props.analyser.fftSize = props.monoDataLength * 2;
           const bufferLength = props.analyser.frequencyBinCount;
@@ -117,7 +118,6 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
           props.analyser.getByteTimeDomainData(dataArray);
 
           let animationId = null;
-          let dataArrayPrev: Array<number> = (new Array(256)).fill(128);
 
           const draw = () => {
             animationId = requestAnimationFrame(draw);
@@ -141,15 +141,23 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
           };
         } else {
           let animationId = null;
-          let dataArrayPrev: Array<number> = (new Array(256)).fill(128);
+          const timeStart = performance.now();
 
-          const draw = () => {
+          const draw = (now: number) => {
             animationId = requestAnimationFrame(draw);
+            let step = (now - timeStart) / 5;
 
-            const dataArray: Array<number> = Array(props.monoDataLength).fill(128);
+            const newArray: Array<number> = dataArrayPrev.map(
+              (rowData) => {
+                if (rowData > 128) {
+                  return Math.max(128, rowData - step);
+                } else if (rowData < 128) {
+                  return Math.min(128, rowData + step);
+                }
 
-            let newArray = dataArrayPrev.map((value, index) => isFading ? getValue(0, 256, value, dataArray[index]) : dataArray[index]);
-            dataArrayPrev = newArray;
+                return rowData;
+              }
+            );
 
             const canvas = ref.current;
             const ctx = canvas.getContext('2d');
@@ -161,7 +169,7 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
             }
           };
 
-          draw();
+          draw(performance.now());
 
           return () => {
             if (!isNull(animationId)) {
