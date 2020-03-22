@@ -7,7 +7,6 @@ const GlobalStyle = createGlobalStyle`
 
   html, body {
     margin: 0;
-    font-family:  "Roboto script=all rev=2";
     font-size: 1.2rem;
   }
   #container, #modal_container, #image_container, #notification_container {

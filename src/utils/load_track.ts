@@ -9,7 +9,7 @@ const loadTrack = async (url: string, handleProgress: (event: ProgressEvent<Even
       xhr.open('GET', url, true);
 
       xhr.onprogress = handleProgress;
-      xhr.onreadystatechange = async () => {
+      xhr.onreadystatechange = () => {
         if (xhr.readyState !== 4) {
           return;
         }
@@ -18,9 +18,7 @@ const loadTrack = async (url: string, handleProgress: (event: ProgressEvent<Even
           alert(xhr.status + ': ' + xhr.statusText);
         } else {
           const audioCtx = getAudioCtx();
-
-          const audioBuffer = await audioCtx.decodeAudioData(xhr.response);
-          res(audioBuffer);
+          audioCtx.decodeAudioData(xhr.response, (audioBuffer) => res(audioBuffer));
         }
       };
 

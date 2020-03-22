@@ -32,12 +32,15 @@ import {
   changeTrackListOneTrack,
   addIndexToActiveTrackIndex,
   ADD_INDEX_ACTIVE_TRACK_INDEX,
+  SET_MAIN_IS_LOADED,
+  setMailIsLoaded,
 } from 'store/actions';
 import { PLAYER_STATE } from 'constants/play_state';
 import { LOOP_STATE } from 'constants/play_loop';
 import { isNumber, isNullOrUndefined } from 'util';
 
 export type VsStoreContextValueState = {
+  main_is_loaded: boolean;
   last_cursor_time: number;
   state_of_loop: LOOP_STATE;
   state_of_play: PLAYER_STATE;
@@ -54,6 +57,7 @@ export type VsStoreContextValueState = {
 };
 
 const default_value: VsStoreContextValueState = {
+  main_is_loaded: false,
   last_cursor_time: 0,
   state_of_loop: LOOP_STATE.ALL_LOOP,
   state_of_play: PLAYER_STATE.NODATA,
@@ -72,6 +76,7 @@ const initStore = (): VsStoreContextValueState => {
   const userData: Partial<VsStoreContextValueState> = JSON.parse(localStorage.getItem('userData'));
 
   return {
+    main_is_loaded: default_value.main_is_loaded,
     last_cursor_time: default_value.last_cursor_time,
     state_of_play: default_value.state_of_play,
     loaded_bytes: default_value.loaded_bytes,
@@ -92,6 +97,12 @@ export const reducer = createReducer<VsStoreContextValueState>(
     return initStore();
   },
   {
+    [SET_MAIN_IS_LOADED](state, { payload }: ReturnType<typeof setMailIsLoaded>) {
+      return {
+        ...state,
+        main_is_loaded: true,
+      };
+    },
     [ADD_INDEX_ACTIVE_TRACK_INDEX](state, { payload }: ReturnType<typeof addIndexToActiveTrackIndex>) {
       const track_list_length = state.track_list.length;
       let active_track_index_new = state.active_track_index;
@@ -114,9 +125,14 @@ export const reducer = createReducer<VsStoreContextValueState>(
         )
       );
 
+      const state_of_play_new = state.state_of_play === PLAYER_STATE.NODATA || state.state_of_play === PLAYER_STATE.PREPARE
+        ? PLAYER_STATE.PAUSE
+        : state.state_of_play;
+
       return {
         ...state,
         track_list: track_list_new,
+        state_of_play: state_of_play_new
       };
     },
     [REMOVE_TRACK_FROM_TRACK_LIST](state, { payload }: ReturnType<typeof removeTrackFromTrackList>) {

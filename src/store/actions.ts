@@ -2,6 +2,7 @@ import { VsStoreContextValueState } from 'store/reducer';
 import { PLAYER_STATE } from 'constants/play_state';
 
 export const CHANGE_STATE_OF_PLAY = 'CHANGE_STATE_OF_PLAY';
+export const SET_MAIN_IS_LOADED = 'SET_MAIN_IS_LOADED';
 
 export const CHANGE_VOLUME = 'CHANGE_VOLUME';
 export const CHANGE_MULTIPLY = 'CHANGE_MULTIPLY';
@@ -18,6 +19,11 @@ export const ADD_INDEX_ACTIVE_TRACK_INDEX = 'ADD_INDEX_ACTIVE_TRACK_INDEX';
 
 export const ADD_TRACKS_FROM_TRACK_LIST = 'ADD_TRACKS_FROM_TRACK_LIST';
 export const REMOVE_TRACK_FROM_TRACK_LIST = 'REMOVE_TRACK_FROM_TRACK_LIST';
+
+export const setMailIsLoaded = () => ({
+  type: SET_MAIN_IS_LOADED,
+  payload: {},
+});
 
 export const changeTrackListOneTrack = (old_track: VsStoreContextValueState['track_list'][0], new_track: VsStoreContextValueState['track_list'][0]) => ({
   type: CHANGE_TRACK_LIST_ONE_TRACK,

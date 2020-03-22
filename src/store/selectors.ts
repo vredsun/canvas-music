@@ -2,6 +2,10 @@ import { VsStoreContextValueState } from 'store/reducer';
 import { PLAYER_STATE } from 'constants/play_state';
 import { isNullOrUndefined } from 'util';
 
+export const selectMainIsLoaded = (state: VsStoreContextValueState) => {
+  return state.main_is_loaded;
+};
+
 export const selectVolume = (state: VsStoreContextValueState) => {
   return state.volume;
 };

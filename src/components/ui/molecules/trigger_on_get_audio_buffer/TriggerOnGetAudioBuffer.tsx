@@ -6,7 +6,6 @@ import {
   changeStateOfPlayOnPrepare,
   changeLoadedBytes,
   changeTrackListOneTrack,
-  changeStateOfPlayOnPlayFromStart,
 } from 'store/actions';
 import loadTrack from 'utils/load_track';
 
@@ -37,7 +36,6 @@ const TriggerOnGetAudioBuffer: React.FC<Props> = React.memo(
               dispatch(
                 changeTrackListOneTrack(track, { ...track, trackAudioBuffer: trackAudioBufferNew }),
               );
-              dispatch(changeStateOfPlayOnPlayFromStart());
             }
           );
         }
