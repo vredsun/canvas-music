@@ -22,6 +22,7 @@ const InputVolume: React.FC<Props> = React.memo(
     return (
       <label>
         <VerticalRange
+          label="vol"
           value={volume}
           min={0}
           max={1}
