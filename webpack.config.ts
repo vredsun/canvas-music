@@ -34,6 +34,7 @@ const getPlugins = () => {
       publicPath: process.env.PUBLIC_PATH,
       hash: true,
       title: 'Canvas-music',
+      scriptLoading: 'defer',
       meta: {
         'mobile-web-app-capable': 'yes',
         'viewport': 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui',

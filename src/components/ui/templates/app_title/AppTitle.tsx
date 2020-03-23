@@ -64,7 +64,6 @@ const AppTitle: React.FC<Props> = React.memo(
           let timeState = performance.now();
 
           const awaitLoad = (now: number) => {
-            // console.log({ now, timeState })
             if (now - timeState > DEFAULT_ANIMATION_TIME) {
               if (animationId) {
                 cancelAnimationFrame(animationId);

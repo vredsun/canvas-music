@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 type Props = {
-  flexDirection?: 'column' | 'row';
+  flexDirection?: 'column' | 'row' | 'row-reverse';
   alignItems?: 'center' | 'space-between' | 'baseline' | 'flex-end' | 'end';
   justifyContent?: 'center' | 'space-between' | 'flex-end' | 'flex-start';
   flexWrap?: 'wrap';

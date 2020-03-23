@@ -28,8 +28,17 @@ import TriggerOnStopSource from 'components/ui/molecules/trigger_on_stop_source/
 import TriggerOnKeyboard from 'components/ui/molecules/trigger_on_keyboard/TriggerOnKeyboard';
 import styled from 'styled-components';
 import BottomControl from 'components/ui/organisms/bottom_control/BottomControl';
+import Flex from 'components/ui/atoms/flex/Flex';
+import HiddenMenu from 'components/ui/atoms/hidden_menu/HiddenMenu';
 
 const FlexContainerWrap = styled(FlexContainer)`
+  width: 100%;
+  flex: 1;
+`;
+
+const FlexContainerFullHeight = styled(FlexContainer)`
+  width: 100%;
+  height: 100%;
   flex: 1;
 `;
 
@@ -50,23 +59,27 @@ const PlayerControl: React.FC<{}> = () => {
   return (
     <FlexContainerWrap flexDirection="column">
       <FlexContainerWrap>
-        <div>
-          <FlexContainer flexDirection="column">
-            <InputMultiply />
-            <InputUnionBlock monoDataLength={monoDataLength} />
-            <InputFading />
-          </FlexContainer>
-        </div>
-        <div>
-          <FlexContainer alignItems="center" justifyContent="center">
+        <Flex basis="500px">
+          <HiddenMenu position="left">
+            <FlexContainer flexDirection="column">
+              <InputMultiply />
+              <InputUnionBlock monoDataLength={monoDataLength} />
+              <InputFading />
+            </FlexContainer>
+          </HiddenMenu>
+        </Flex>
+        <Flex basis="900px" grow={1}>
+          <FlexContainerFullHeight alignItems="center" justifyContent="center">
             <CanvasVisualizer analyser={audioData?.analyser} monoDataLength={monoDataLength} />
-          </FlexContainer>
-        </div>
-        <div>
-          <FlexContainer>
-            <TrackListControl />
-          </FlexContainer>
-        </div>
+          </FlexContainerFullHeight>
+        </Flex>
+        <Flex basis="500px">
+          <HiddenMenu position="right">
+            <FlexContainer>
+              <TrackListControl />
+            </FlexContainer>
+          </HiddenMenu>
+        </Flex>
       </FlexContainerWrap>
       <FlexContainer justifyContent="center">
         <PlayerButtons />

@@ -12,9 +12,10 @@ type Props = {};
 
 const FlexContainerWrap = styled(FlexContainer)<{ isLoaded: boolean }>`
   overflow: hidden;
+  width: 100%;
   flex: ${({ isLoaded }) => isLoaded ? '1' : '0'};
   opacity: ${({ isLoaded }) => isLoaded ? '1' : '0'};
-  transition: flex ${DEFAULT_ANIMATION_TIME}ms, opacity ${DEFAULT_ANIMATION_TIME}ms;
+  transition: flex ${DEFAULT_ANIMATION_TIME}ms, opacity ${2 * DEFAULT_ANIMATION_TIME}ms;
 `;
 
 const PlayerControlWrap: React.FC<Props> = React.memo(

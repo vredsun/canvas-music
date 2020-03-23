@@ -4,10 +4,27 @@ import { useSelector } from 'vs-react-store';
 
 import { PLAYER_STATE } from 'constants/play_state';
 import { selectVolume, selectMultiply, selectUnionBlocks, selectStateOfPlay, selectIsFading } from 'store/selectors';
+import styled from 'styled-components';
 
-const canvasH = 512;
-const canvasW = canvasH;
-const canvasHh = Math.floor( canvasH / 2 );
+const Canvas = styled.canvas`
+  width: 100%;
+  height: 100%;
+`;
+
+function resize(canvas) {
+  // Lookup the size the browser is displaying the canvas.
+  var displayWidth  = canvas.clientWidth;
+  var displayHeight = canvas.clientHeight;
+
+  // Check if the canvas is not the same size.
+  if (canvas.width != displayWidth
+      || canvas.height != displayHeight) {
+
+    // Make the canvas the same size
+    canvas.width  = displayWidth;
+    canvas.height = displayHeight;
+  }
+}
 
 const getYValue = (index: number, countIndex: number, startAngle: number) => {
   return Math.sin(startAngle + 2 * Math.PI / countIndex * index);
@@ -22,13 +39,22 @@ const normalizeValueByRadius = (value: number, radius: number) => {
 };
 
 const getFuncGetCoordByLineData = (getCoorValue: (index: number, countIndex: number, startAngle: number) => number) => (radius: number, index: number, countIndex: number, value: number, startAngle: number) => {
-  return radius + getCoorValue(index, countIndex, startAngle) * normalizeValueByRadius(value, radius);
+  return getCoorValue(index, countIndex, startAngle) * normalizeValueByRadius(value, radius);
 };
 
 const getXByLineData = getFuncGetCoordByLineData(getXValue);
 const getYByLineData = getFuncGetCoordByLineData(getYValue);
 
-const drawCircle = (ctx: CanvasRenderingContext2D, monoDataLength: number, initMonoData: Array<number> | Uint8Array, multiply: number, unionBlocks: number, isFading: boolean) => {
+const drawCircle = (
+  ctx: CanvasRenderingContext2D,
+  monoDataLength: number,
+  initMonoData: Array<number> | Uint8Array,
+  multiply: number,
+  unionBlocks: number,
+  isFading: boolean,
+  canvasW: number,
+  canvasH: number,
+) => {
   const allItems = monoDataLength * (multiply * 2);
   const countByOne = 2 ** unionBlocks;
 
@@ -57,8 +83,8 @@ const drawCircle = (ctx: CanvasRenderingContext2D, monoDataLength: number, initM
       lastSumm = 0;
 
       for (let j = i - countByOne; j < i; j ++) {
-        const x = getXByLineData(canvasHh, j, allItems, currentValue, 0);
-        const y = getYByLineData(canvasHh, j, allItems, currentValue, 0);
+        const x = canvasW / 2 + getXByLineData(Math.min(canvasH, canvasW) / 2, j, allItems, currentValue, 0);
+        const y = canvasH / 2 + getYByLineData(Math.min(canvasH, canvasW) / 2, j, allItems, currentValue, 0);
 
         if (i === 0) {
           ctx.moveTo(x, y);
@@ -111,6 +137,9 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
 
     React.useEffect(
       () => {
+        const canvas = ref.current;
+
+        resize(canvas);
         if (props.analyser && current_player_state === PLAYER_STATE.PLAY) {
           props.analyser.fftSize = props.monoDataLength * 2;
           const bufferLength = props.analyser.frequencyBinCount;
@@ -126,10 +155,9 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
             let newArray = dataArrayPrev.map((value, index) => isFading ? getValue(0, 256, value, dataArray[index]) : dataArray[index]);
             dataArrayPrev = newArray;
 
-            const canvas = ref.current;
             const ctx = canvas.getContext('2d');
 
-            drawCircle(ctx, props.monoDataLength, newArray, multiply, unionBlocks, isFading);
+            drawCircle(ctx, props.monoDataLength, newArray, multiply, unionBlocks, isFading, canvas.width, canvas.height);
           };
 
           draw();
@@ -159,10 +187,9 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
               }
             );
 
-            const canvas = ref.current;
             const ctx = canvas.getContext('2d');
 
-            drawCircle(ctx, props.monoDataLength, newArray, multiply, unionBlocks, isFading);
+            drawCircle(ctx, props.monoDataLength, newArray, multiply, unionBlocks, isFading, canvas.width, canvas.height);
 
             if (newArray.every((value) => value === 128)) {
               cancelAnimationFrame(animationId);
@@ -181,7 +208,6 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
       [
         props.analyser,
         current_player_state,
-        canvasW,
         volume,
         multiply,
         unionBlocks,
@@ -189,7 +215,7 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
       ],
     );
 
-    return <canvas width={canvasW} height={canvasH} ref={ref} />;
+    return <Canvas ref={ref} />;
   },
 );
 
