@@ -122,7 +122,7 @@ const getValue = (min: number, max: number, oldValue: number, newValue: number) 
   return newValue;
 };
 
-let dataArrayPrev: Array<number> = (new Array(256)).fill(128);
+let dataArrayPrev: Array<number> = (new Array(256)).fill(512);
 
 const CanvasVisualizer: React.FC<Props> = React.memo(
   (props) => {
@@ -139,7 +139,6 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
       () => {
         const canvas = ref.current;
 
-        resize(canvas);
         if (props.analyser && current_player_state === PLAYER_STATE.PLAY) {
           props.analyser.fftSize = props.monoDataLength * 2;
           const bufferLength = props.analyser.frequencyBinCount;
@@ -149,6 +148,8 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
           let animationId = null;
 
           const draw = () => {
+            resize(canvas);
+
             animationId = requestAnimationFrame(draw);
 
             props.analyser.getByteTimeDomainData(dataArray);
@@ -172,6 +173,8 @@ const CanvasVisualizer: React.FC<Props> = React.memo(
           const timeStart = performance.now();
 
           const draw = (now: number) => {
+            resize(canvas);
+
             animationId = requestAnimationFrame(draw);
             let step = (now - timeStart) / 5;
 
