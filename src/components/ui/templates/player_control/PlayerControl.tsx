@@ -9,6 +9,7 @@ import {
   selectStateOfPlay,
   selectLastCursorTime,
   selectActiveTrackIndex,
+  selectStateOfPlayNoData,
 } from 'store/selectors';
 
 import useAudio from 'components/ui/templates/player_control/useAudio';
@@ -49,6 +50,7 @@ const PlayerControl: React.FC<{}> = () => {
   const active_track_index = useSelector(selectActiveTrackIndex);
 
   const current_player_state = useSelector(selectStateOfPlay);
+  const no_data = useSelector(selectStateOfPlayNoData);
 
   const audioData = useAudio(
     current_player_state === PLAYER_STATE.PLAY && !isNull(active_track_index),
@@ -74,7 +76,7 @@ const PlayerControl: React.FC<{}> = () => {
           </FlexContainerFullHeight>
         </Flex>
         <Flex basis="500px">
-          <HiddenMenu position="right">
+          <HiddenMenu position="right" isManual={no_data} isOpen={no_data}>
             <FlexContainer>
               <TrackListControl />
             </FlexContainer>

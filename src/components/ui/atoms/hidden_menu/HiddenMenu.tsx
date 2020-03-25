@@ -8,18 +8,21 @@ import { main_blue_color } from 'constants/color';
 type Props = {
   title?: string;
   position: 'left' | 'right';
+
+  isManual?: boolean;
+  isOpen?: boolean;
 };
 
-const leftPositionCss = css`
-  transform: translate(calc(-100% + 50px));
+const leftPositionCss = (isOpen: boolean) => css`
+  transform: translate(${!isOpen ? 'calc(-100% + 50px)' : '0%'});
 
   &:hover {
     transform: translate(0%);
   }
 `;
 
-const rightPositionCss = css`
-  transform: translate(calc(100% - 50px));
+const rightPositionCss = (isOpen) => css`
+  transform: translate(${!isOpen ? 'calc(100% - 50px)' : '0%'});
 
   &:hover {
     transform: translate(0%);
@@ -33,13 +36,14 @@ const Container = styled.div<Props>`
   flex-direction: column;
 
   position: relative;
-  ${({ position }) => (
-    position === 'left' && leftPositionCss
+  ${({ position, isOpen }) => (
+    position === 'left' && leftPositionCss(isOpen)
   )};
 
-  ${({ position }) => (
-    position === 'right' && rightPositionCss
+  ${({ position, isOpen }) => (
+    position === 'right' && rightPositionCss(isOpen)
   )};
+
 
   transition: transform ${DEFAULT_ANIMATION_TIME}ms;
 `;
@@ -69,7 +73,7 @@ const Plashka = styled.div`
 const HiddenMenu: React.FC<Props> = React.memo(
   (props) => {
     return (
-      <Container position={props.position}>
+      <Container position={props.position} isOpen={props.isManual ? props.isOpen : undefined}>
         <ChildrenWrap>
           <FlexContainerWrap flexDirection={props.position === 'right' ? 'row' : 'row-reverse'}>
             <Flex shrink={0}>
