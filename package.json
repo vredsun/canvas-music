@@ -76,7 +76,7 @@
     "fork-ts-checker-webpack-plugin": "^4.1.1",
     "gh-pages": "^2.2.0",
     "handlebars": "^4.7.3",
-    "handlebars-loader": "^1.7.1",
+    "handlebars-loader": "^1.7.3",
     "html-webpack-plugin": "^4.0.1",
     "husky": "^4.2.3",
     "jest": "^25.1.0",
